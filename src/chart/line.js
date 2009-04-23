@@ -12,8 +12,6 @@ Chart.Line = Class.create(Chart.Base, {
       throw new Krang.Error("No dataset!");
     }
     
-    console.log("in Chart.Line#draw");
-    
     var opt = this.options, R = this.R, g = opt.gutter;
     
     var max = this._dataset.maxValue();
