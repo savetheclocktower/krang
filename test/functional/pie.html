@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+	<script src="../../lib/prototype.js" type="text/javascript"></script>
+	<script src="../../lib/raphael.js"   type="text/javascript"></script>
+	<script src="../../dist/krang.js"    type="text/javascript"></script>
+
+	<title>Krang tests: Pie chart</title>
+	
+	<script type="text/javascript">
+	
+	  Event.observe(window, 'load', function() {
+  	  var dataset = new Dataset.Array([
+  	    ['Obama',  52],
+  	    ['McCain', 46],
+  	    ['Other',   2]
+  	  ]);
+
+  	  var pie = new Chart.Pie('chart');
+
+  	  pie.addDataset(dataset);
+  	  pie.draw();
+	  });
+	
+	</script>
+	
+</head>
+
+<body>
+  
+  
+  <div id="chart">
+    
+  </div> <!-- #chart -->
+
+
+</body>
+</html>
