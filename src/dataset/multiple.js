@@ -22,5 +22,10 @@ Dataset.Multiple = Class.create(Dataset.Base, Enumerable, {
   maxValue: function() {
     var maxes = this.map( function(set) { return set.maxValue(); });
     return Math.max.apply(Math, maxes);
+  },
+  
+  maxValuesSum: function() {
+    var maxes = this.map( function(set) { return set.maxValue(); });
+    return Math.sum.apply(Math, maxes);
   }
 });

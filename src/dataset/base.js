@@ -21,5 +21,9 @@ Dataset.Base = Class.create({
   
   maxValue: function() {
     return Math.max.apply(Math, this.values);
+  },
+  
+  maxValuesSum: function() {
+    return Math.max.apply(Math, this.values);
   }
 });
