@@ -1,12 +1,18 @@
 Krang.deepExtend = function(destination, source) {
   for (var property in source) {
-    var type = typeof source[property];
-    if (type === 'object' && !Object.isElement(source[property])) {
+    var type = typeof source[property], deep = true;
+        
+    if (type !== 'object' || Object.isElement(source[property]) ||
+     (source[property].constructor && source[property].constructor !== Object)) {
+       deep = false;
+    }
+    
+    if (deep) {
       destination[property] = destination[property] || {};
       arguments.callee(destination[property], source[property]);
     } else {
       destination[property] = source[property];
-    }
+    }    
   }
   return destination;
 };
