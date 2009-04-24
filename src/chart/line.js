@@ -13,7 +13,6 @@ Chart.Line = Class.create(Chart.Base, {
     }
     
     var opt = this.options, R = this.R, g = opt.gutter;
-    
     var max = this._dataset.maxValue();
     
     // Horizontal space between each node.
@@ -39,19 +38,15 @@ Chart.Line = Class.create(Chart.Base, {
       opt.height - (g.top + g.bottom)
     ).attr({ stroke: opt.border.color });
     
-    
-    
     var blanket = R.set();
     
     function plotDataset(dataset) {
-      console.log(dataset);
       var data = dataset.toArray();
       
       // Create the path objects for the line and the fill.
-      console.log(Colorset.interpret(opt.line.color));
-      
+      var lineColor = Colorset.interpret(opt.line.color);      
       var line = R.path({
-        'stroke':          Colorset.interpret(opt.line.color),
+        'stroke':          lineColor,
         'stroke-width':    opt.line.width,
         'stroke-linejoin': 'round'
       });
@@ -68,14 +63,10 @@ Chart.Line = Class.create(Chart.Base, {
       
       // Plot the values.
       for (var i = 0, l = data.length; i < l; i++) {
-        label = data[i].label, value = data[i].value;
-
+        label = data[i].label; value = data[i].value;
 
         y = Math.round(opt.height - g.bottom - (yScale * value));
         x = Math.round(g.left + (xScale * i));
-
-
-        console.log("plotting", value, "at", [x, y]);
 
         // Draw the line segment.
         if (i == 0) {
@@ -88,7 +79,7 @@ Chart.Line = Class.create(Chart.Base, {
 
         // Draw the dot.
         dot = R.circle(x, y, opt.dot.radius).attr({ 
-          fill:   opt.dot.color,
+          fill:   opt.dot.color || lineColor,
           stroke: opt.dot.stroke
         });
 
@@ -147,7 +138,6 @@ Object.extend(Chart.Line, {
     },
     
     dot: {
-      color: '#039',
       stroke: '#fff',
       radius: 4
     },
