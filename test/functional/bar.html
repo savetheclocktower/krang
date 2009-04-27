@@ -12,43 +12,46 @@
 	<title>Krang tests: Bar chart</title>
 	
 	<script type="text/javascript">
-	
+
 	  Event.observe(window, 'load', function() {
   	  var dataset = new Dataset.Array([
-  	    ['1',  52],
-  	    ['2',  46],
-  	    ['3',  10],
-  	    ['4',  39],
-  	    ['5',  10],
-  	    ['6',  28],
-  	    ['7',  33],
-  	    ['8',  19]
+  	    ['January',  52],
+  	    ['February', 46],
+  	    ['March',    10],
+  	    ['April',    39],
+  	    ['May',      10],
+  	    ['June',     28],
+  	    ['July',     33],
+  	    ['August',   19]
   	  ]);
   	  
   	  var dataset2 = new Dataset.Array([
-  	    ['1',  42],
-  	    ['2',  36],
-  	    ['3',   4],
-  	    ['4',  29],
-  	    ['5',   6],
-  	    ['6',  18],
-  	    ['7',  23],
-  	    ['8',   9]
+  	    ['January',  42],
+  	    ['February', 36],
+  	    ['March',     4],
+  	    ['April',    29],
+  	    ['May',       6],
+  	    ['June',     18],
+  	    ['July',     23],
+  	    ['August',    9]
   	  ]);
   	  
   	  var dataset3 = new Dataset.Array([
-  	    ['1',  11],
-  	    ['2',   7],
-  	    ['3',   4],
-  	    ['4',  14],
-  	    ['5',   2],
-  	    ['6',   9],
-  	    ['7',   8],
-  	    ['8',   6]
+  	    ['January',  11],
+  	    ['February',  7],
+  	    ['March',     4],
+  	    ['April',    14],
+  	    ['May',       2],
+  	    ['June',      9],
+  	    ['July',      8],
+  	    ['August',    6]
   	  ]);
   	  
 
-  	  var bar = new Chart.Bar('chart');
+  	  var bar = new Chart.Bar('chart', {
+  	    bar: { gutter: 20, color: "#c50" },
+  	    grid: { labelY: function(value) { return "$" + (value.toFixed(2)); } }
+  	  });
 
   	  bar.addDataset(new Dataset.Multiple(dataset, dataset2, dataset3));
   	  bar.draw();
@@ -59,7 +62,7 @@
 	<style type="text/css" media="screen">
 	  #chart {
 	    width: 800px;
-	    height: 250px;
+	    height: 300px;
 	    border: 1px solid #999;
 	  }
 	</style>

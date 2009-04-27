@@ -12,6 +12,14 @@ var Colorset = Class.create({
   }
 });
 
+Colorset.Default = Class.create({
+  initialize: Prototype.emptyFunction,
+  next: function() {
+    return Raphael.getColor(0.7);
+  }
+});
+
+
 Colorset.BLUES = new Colorset(
   "#003",
   "#03A",
@@ -20,6 +28,8 @@ Colorset.BLUES = new Colorset(
   "#039",
   "#006"
 );
+
+
 
 Colorset.interpret = function(value) {
   return (typeof value === 'object') ? value.next() : value;

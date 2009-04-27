@@ -90,10 +90,17 @@ Chart.Line = Class.create(Chart.Base, {
           xScale,
           opt.height - g.bottom
         ).attr({
-          stroke: 'none',
-          fill: '#fff',
+          stroke:  'none',
+          fill:    '#fff',
           opacity: 0
         });
+        
+        Krang.Data.store(rect, {
+          dot:  dot,
+          data: data[i]
+        });
+        
+        this._createObservers(rect);
 
         blanket.push(rect);      
       }
@@ -111,6 +118,26 @@ Chart.Line = Class.create(Chart.Base, {
     }    
     
     blanket.toFront();
+  },
+  
+  _createObservers: function(rect) {
+    var over = function() {
+      var dot = Krang.Data.retrieve(rect, 'dot'),
+         data = Krang.Data.retrieve(rect, 'data');
+         
+      Event.fire(rect.node, 'krang:mouseover', { dot: dot, data: data });
+    };
+    
+    var out = function() {
+      var dot = Krang.Data.retrieve(rect, 'dot'),
+         data = Krang.Data.retrieve(rect, 'data');
+         
+      Event.fire(rect.node, 'krang:mouseout', { dot: dot, data: data });
+    };
+    
+    Event.observe(rect.node, 'mouseover', over);
+    Event.observe(rect.node, 'click',     out );
+    Event.observe(rect.node, 'mouseout',  out );    
   }
 });
 

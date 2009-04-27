@@ -13,14 +13,25 @@ Chart.Bar = Class.create(Chart.Base, {
     }
     
     var opt = this.options, R = this.R, g = opt.gutter;
-    var max = this._dataset.maxValuesSum();
+    
+    var max;
+    
+    if (opt.grid.maxY === 'auto') {
+      max = this._dataset.maxValuesSum();
+    } else {
+      max = opt.grid.maxY;
+    }
     
     // Width of each bar.
     var xScale = (opt.width - (g.left + g.right)) / 
-     (this._dataset.dataLength() - 1);
+     (this._dataset.dataLength());
      
     // Vertical scale of chart.
-    var yScale = (opt.height - (g.bottom + g.top)) / max;
+    var yRange = opt.height - (g.top + g.bottom);    
+    var yScale = yRange / max;
+    
+    var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
+    var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
     
     // Draw the background grid.
     R.drawGrid(
@@ -28,8 +39,8 @@ Chart.Bar = Class.create(Chart.Base, {
       g.top,                            /* Y                 */
       opt.width  - (g.left + g.right),  /* width             */
       opt.height - (g.top + g.bottom),  /* height            */
-      0,                                /* number of columns */
-      10,                               /* number of rows    */
+      columns,                          /* number of columns */
+      rows,                             /* number of rows    */
       opt.grid.color                    /* color             */
     );
     
@@ -44,18 +55,15 @@ Chart.Bar = Class.create(Chart.Base, {
     var barTotals = [];
     var label, value, x = 0, y, rect, startingY;
     function plotDataset(dataset, index) {
-      console.log("DATASET", index || 0);
-      //if (index === 1) return;
       var data = dataset.toArray();
       var color = Colorset.interpret(opt.bar.color);
       
-      var yRange = opt.height - (g.top + g.bottom);
 
       for (var i = 0, l = data.length; i < l; i++) {
         label = data[i].label, value = data[i].value;
         
         y = Math.round((yScale * value));
-        x = Math.round(g.left + ((xScale / 2) * i));
+        x = Math.round(g.left + (xScale * i));
         
         // Because the bars stack in the case of multiple datasets, we have to
         // keep track of the total height of each bar.
@@ -67,26 +75,75 @@ Chart.Bar = Class.create(Chart.Base, {
           barTotals[i] += y;
         }
         
-        barWidth = Math.round((xScale / 2) - opt.bar.gutter);
+        barWidth = Math.round(xScale - opt.bar.gutter);
+        
+        var attrs = {
+          fill: color,
+          opacity: opt.bar.opacity
+        };
+        
+        if (opt.bar.border.width) {
+          Object.extend(attrs, {
+            'stroke': Colorset.interpret(opt.bar.border.color),
+            'stroke-width': opt.bar.border.width
+          });
+        }
         
         // Draw the bar.
         R.rect(
-          x,
+          Math.round(x + (opt.bar.gutter / 2)),
           (g.top + yRange) - y - startingY,
           barWidth,
           y
-        ).attr({
-          stroke: 'none',
-          fill: color
-        });
+        ).attr(attrs);
+        
+        // Only draw X-axis labels for the first set.
+        if (!index) {
+          var textStartY = g.top + yRange + Math.round(g.bottom / 2);
+
+          var text = R.text(x, textStartY, label).attr({
+            font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+            stroke: 'none',
+            fill: opt.text.color          
+          });
+
+          var textWidth = text.getBBox().width;
+          var textX = Math.round(barWidth / 2);
+          
+          text.attr({ x: Math.round(x + textX + (opt.bar.gutter / 2)) });
+        }
       }
     }
+    
+    // Draw Y-axis labels.
+    var yStart = g.bottom, yEnd = opt.height - g.top;
+    
+    
+    var value, yLabel, yPlot, text;
+    for (var j = 0, yLabel; j <= rows; j++) {
+      value = (j / rows) * max;
+      yLabel = opt.grid.labelY(value);
+      yPlot = yStart + ((j * yRange) / rows);
+      
+      text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
+        font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+        stroke: 'none',
+        fill: opt.text.color          
+      });
+      
+      // fake right-alignment
+      var textWidth = text.getBBox().width;
+      var textX = g.left - 10 - textWidth;
+      
+      text.attr({ x: textX, 'text-anchor': 'start' });
+    }
+    
     
     if (this._dataset instanceof Dataset.Multiple) {
       this._dataset.each(plotDataset, this);
     } else {
       plotDataset(this._dataset);
-    }
+    }    
   }
 });
 
@@ -94,10 +151,15 @@ Chart.Bar = Class.create(Chart.Base, {
 Object.extend(Chart.Bar, {
   DEFAULT_OPTIONS: {
     width:  800,
-    height: 250,
+    height: 300,
     bar: {
-      color: Colorset.BLUES,
-      gutter: 5
+      color: new Colorset.Default,
+      border: {
+        width: 0,
+        color: null
+      },
+      gutter: 5,
+      opacity: 1.0
     },
     
     fill: {
@@ -107,17 +169,38 @@ Object.extend(Chart.Bar, {
     
     gutter: {
       top:    20,
-      bottom: 20,
-      left:   30,
+      bottom: 30,
+      left:   100,
       right:  30
     },
     
     grid: {
-      color: '#ddd'
+      color: '#ddd',
+      
+      horizontal: {
+        enabled: true,
+        lines: 10
+      },
+      
+      vertical: {
+        enabled: false,
+        lines: 0
+      },
+      
+      labelX: Prototype.K,
+      labelY: Prototype.K,
+      
+      maxY: 'auto'
     },
     
     border: {
       color: '#999'
+    },
+    
+    text: {
+      fontFamily: '"Lucida Grande"',
+      fontSize:   '12px',
+      color:      "#000"
     }
   }
 });

@@ -67,31 +67,30 @@ Chart.Pie = Class.create(Chart.Base, {
       bgColor = Raphael.rgb2hsb(color);
       bgColor = Raphael.hsb2rgb(bgColor.h, bgColor.s, 1).hex;
       
-      console.log(wedge);
-      
-      (function(wedge, popAngle, bgColor, color) {
-        
-        wedge.mouseover(function() {
-          var x1 = opt.animation.distance * Math.cos(-popAngle * Math.RAD);
-          var y1 = opt.animation.distance * Math.sin(-popAngle * Math.RAD);
-
-          wedge.animate({
-            translation: "#{0} #{1}".interpolate([x1, y1]),
-            fill: bgColor
-          }, opt.animation.duration * 1000);
-        });
-
-        wedge.mouseout(function() {
-          var tr = wedge.attr('translation');
-
-          wedge.animate({
-            translation: "#{0} #{1}".interpolate([-tr.x, -tr.y]),
-            fill: color
-          }, opt.animation.duration * 1000);
-        });      
-        
-        
-      })(wedge, popAngle, bgColor, color);
+      // TODO: Move this somewhere else. It shouldn't be a default.
+      // (function(wedge, popAngle, bgColor, color) {
+      //   
+      //   wedge.mouseover(function() {
+      //     var x1 = opt.animation.distance * Math.cos(-popAngle * Math.RAD);
+      //     var y1 = opt.animation.distance * Math.sin(-popAngle * Math.RAD);
+      // 
+      //     wedge.animate({
+      //       translation: "#{0} #{1}".interpolate([x1, y1]),
+      //       fill: bgColor
+      //     }, opt.animation.duration * 1000);
+      //   });
+      // 
+      //   wedge.mouseout(function() {
+      //     var tr = wedge.attr('translation');
+      // 
+      //     wedge.animate({
+      //       translation: "#{0} #{1}".interpolate([-tr.x, -tr.y]),
+      //       fill: color
+      //     }, opt.animation.duration * 1000);
+      //   });      
+      //   
+      //   
+      // })(wedge, popAngle, bgColor, color);
       
       
       angle += wedgeSize;

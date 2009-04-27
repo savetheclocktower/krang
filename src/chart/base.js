@@ -1,5 +1,3 @@
-var Chart = {};
-
 Chart.Base = Class.create(Krang.Mixin.Configurable, {
   initialize: function(canvas) {
     this.canvas = $(canvas);

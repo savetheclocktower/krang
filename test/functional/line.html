@@ -58,6 +58,10 @@
 
   	  line.addDataset(new Dataset.Multiple(dataset, dataset2, dataset3));
   	  line.draw();
+  	  
+  	  document.observe('krang:mouseover', function(event) {
+  	    console.log("dot:", event.memo.dot, "data:", event.memo.data);
+  	  });
 	  });
 	
 	</script>
