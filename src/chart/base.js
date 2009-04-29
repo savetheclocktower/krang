@@ -9,6 +9,8 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
     } else {
       throw new Krang.Error("Dataset must inherit from class Dataset!");
     }
+    
+    return this;
   },
   
   draw: function() {

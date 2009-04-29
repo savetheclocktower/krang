@@ -47,13 +47,18 @@ Chart.Pie = Class.create(Chart.Base, {
     
     var total = Math.sum.apply(Math, d.values);
     
+    var $color = opt.wedge.color;
+    if (opt.wedge.color instanceof Krang.Colorset) {
+      opt.wedge.color.setLength(this._dataset.dataLength());
+    }
+            
     var label, value, wedge, wedgeSize, popAngle, color, bgColor;
     for (var i = 0, l = d.labels.length; i < l; i++) {
       label = d.labels[i], value = d.values[i];
       
       wedgeSize = (360 * value) / total;
       popAngle = angle + (wedgeSize / 2);
-      color = Raphael.getColor(0.8);
+      color = $color.toString();
       
       wedge = sector(
         this._center.x,
@@ -67,31 +72,15 @@ Chart.Pie = Class.create(Chart.Base, {
       bgColor = Raphael.rgb2hsb(color);
       bgColor = Raphael.hsb2rgb(bgColor.h, bgColor.s, 1).hex;
       
-      // TODO: Move this somewhere else. It shouldn't be a default.
-      // (function(wedge, popAngle, bgColor, color) {
-      //   
-      //   wedge.mouseover(function() {
-      //     var x1 = opt.animation.distance * Math.cos(-popAngle * Math.RAD);
-      //     var y1 = opt.animation.distance * Math.sin(-popAngle * Math.RAD);
-      // 
-      //     wedge.animate({
-      //       translation: "#{0} #{1}".interpolate([x1, y1]),
-      //       fill: bgColor
-      //     }, opt.animation.duration * 1000);
-      //   });
-      // 
-      //   wedge.mouseout(function() {
-      //     var tr = wedge.attr('translation');
-      // 
-      //     wedge.animate({
-      //       translation: "#{0} #{1}".interpolate([-tr.x, -tr.y]),
-      //       fill: color
-      //     }, opt.animation.duration * 1000);
-      //   });      
-      //   
-      //   
-      // })(wedge, popAngle, bgColor, color);
-      
+      (function(wedge) {        
+        wedge.mouseover(function() {
+          Event.fire(wedge, 'krang:mouseover', { wedge: wedge });
+        });
+        
+        wedge.mouseout( function() {
+          Event.fire(wedge, 'krang:mouseout',  { wedge: wedge });
+        });
+      })(wedge);
       
       angle += wedgeSize;
     }    
@@ -104,7 +93,13 @@ Object.extend(Chart.Pie, {
     height: 400,
     
     wedge: {
-      stroke: '#000'
+      stroke: '#000',
+      color:  new Krang.Colorset({
+        vary: 'l',
+        hue: 0.2,
+        saturation: 0.6,
+        lightness: 0.7
+      })
     },
     
     animation: {

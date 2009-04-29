@@ -54,9 +54,15 @@ Chart.Bar = Class.create(Chart.Base, {
     
     var barTotals = [];
     var label, value, x = 0, y, rect, startingY;
+    
+    var $color = opt.bar.color;
+    if (opt.bar.color instanceof Krang.Colorset) {
+      opt.bar.color.setLength(this._dataset.size());
+    }
+    
     function plotDataset(dataset, index) {
       var data = dataset.toArray();
-      var color = Colorset.interpret(opt.bar.color);
+      var color = $color.toString();
       
 
       for (var i = 0, l = data.length; i < l; i++) {
@@ -78,16 +84,36 @@ Chart.Bar = Class.create(Chart.Base, {
         barWidth = Math.round(xScale - opt.bar.gutter);
         
         var attrs = {
-          fill: color,
-          opacity: opt.bar.opacity
+          fill:    color,
+          opacity: opt.bar.opacity,
+          stroke: 'none'
         };
         
-        if (opt.bar.border.width) {
+        if (opt.bar.border.width > 0) {
+          
+          var borderColor = opt.bar.border.color;
+          
+          borderColor = (borderColor === 'auto') ?
+            Krang.Color.fromString(color).darkerBy(0.05).toHexString() :
+            Colorset.interpret(borderColor);
+            
           Object.extend(attrs, {
-            'stroke': Colorset.interpret(opt.bar.border.color),
+            'stroke':       borderColor,
             'stroke-width': opt.bar.border.width
           });
         }
+        
+        var colorObj = Krang.Color.fromString(color);
+        
+        var gradient = {
+          type: 'linear',
+          dots: [
+            { color: colorObj.lighterBy(0.05).toHexString() },
+            { color: colorObj.darkerBy( 0.05).toHexString() }
+          ],
+          vector: [0, 0, '100%', 0]
+        };
+        
         
         // Draw the bar.
         R.rect(
@@ -95,7 +121,7 @@ Chart.Bar = Class.create(Chart.Base, {
           (g.top + yRange) - y - startingY,
           barWidth,
           y
-        ).attr(attrs);
+        ).attr(attrs).attr({ gradient: gradient });
         
         // Only draw X-axis labels for the first set.
         if (!index) {
@@ -153,10 +179,14 @@ Object.extend(Chart.Bar, {
     width:  800,
     height: 300,
     bar: {
-      color: new Colorset.Default,
+      color: new Krang.Colorset({
+        vary: 'l',
+        hue: 0.25,
+        saturation: 0.6
+      }),
       border: {
         width: 0,
-        color: null
+        color: 'auto'
       },
       gutter: 5,
       opacity: 1.0

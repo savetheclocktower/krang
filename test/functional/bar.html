@@ -36,25 +36,21 @@
   	    ['August',    9]
   	  ]);
   	  
-  	  var dataset3 = new Dataset.Array([
-  	    ['January',  11],
-  	    ['February',  7],
-  	    ['March',     4],
-  	    ['April',    14],
-  	    ['May',       2],
-  	    ['June',      9],
-  	    ['July',      8],
-  	    ['August',    6]
-  	  ]);
-  	  
+  	  var dataset3 = new Dataset.Table('dataset', {
+  	    labels: 'tbody td:first-child',
+  	    values: 'tbody td:last-child'
+  	  });  	  
 
   	  var bar = new Chart.Bar('chart', {
-  	    bar: { gutter: 20, color: "#c50" },
-  	    grid: { labelY: function(value) { return "$" + (value.toFixed(2)); } }
+  	    bar:  { gutter: 20, border: { width: 1, color: 'auto' } },
+  	    grid: {
+  	      labelY: function(value) {
+  	        return "$" + value.toFixed(2);
+  	      }
+  	    }
   	  });
 
-  	  bar.addDataset(new Dataset.Multiple(dataset, dataset2, dataset3));
-  	  bar.draw();
+  	  bar.addDataset(new Dataset.Multiple(dataset, dataset2, dataset3)).draw();
 	  });
 	
 	</script>
@@ -70,6 +66,49 @@
 </head>
 
 <body>
+  
+  <table id="dataset">
+    <thead>
+      <tr>
+        <td>Month</td>
+        <td>Downloads</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>January</td>
+        <td>11</td>
+      </tr>
+      <tr>
+        <td>February</td>
+        <td>7</td>
+      </tr>
+      <tr>
+        <td>March</td>
+        <td>4</td>
+      </tr>
+      <tr>
+        <td>April</td>
+        <td>14</td>
+      </tr>
+      <tr>
+        <td>May</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>June</td>
+        <td>9</td>
+      </tr>
+      <tr>
+        <td>July</td>
+        <td>8</td>
+      </tr>
+      <tr>
+        <td>August</td>
+        <td>6</td>
+      </tr>
+    </tbody>
+  </table>
   
   
   <div id="chart">

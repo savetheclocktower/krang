@@ -38,13 +38,21 @@ Chart.Line = Class.create(Chart.Base, {
       opt.height - (g.top + g.bottom)
     ).attr({ stroke: opt.border.color });
     
+    var $color = opt.line.color;
+    if (opt.line.color instanceof Krang.Colorset) {
+      opt.line.color.setLength(this._dataset.size());
+    }
+    
     var blanket = R.set();
     
     function plotDataset(dataset) {
       var data = dataset.toArray();
       
       // Create the path objects for the line and the fill.
-      var lineColor = Colorset.interpret(opt.line.color);      
+      
+      
+      
+      var lineColor = $color.toString();
       var line = R.path({
         'stroke':          lineColor,
         'stroke-width':    opt.line.width,
@@ -52,7 +60,7 @@ Chart.Line = Class.create(Chart.Base, {
       });
       
       var fill = R.path({
-        fill:    Colorset.interpret(opt.fill.color),
+        fill:    lineColor,
         opacity: opt.fill.opacity,
         stroke:  'none'
       });
@@ -147,7 +155,11 @@ Object.extend(Chart.Line, {
     width:  800,
     height: 250,
     line: {
-      color: Colorset.BLUES,
+      color: new Krang.Colorset({
+        vary: 'h',
+        saturation: 0.6,
+        lightness: 0.4
+      }),
       width: 4,
       curve: 10
     },

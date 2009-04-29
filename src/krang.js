@@ -12,6 +12,6 @@ if (!window.Raphael) {
 
 //= require "dataset"
 
-//= require "colorset"
+//= require "color"
 
 //= require "chart"
