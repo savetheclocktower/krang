@@ -8,17 +8,28 @@ Chart.Line = Class.create(Chart.Base, {
   },
   
   draw: function() {
-    if (!this._dataset) {
+    if (this._datasets.length === 0) {
       throw new Krang.Error("No dataset!");
     }
     
-    var opt = this.options, R = this.R, g = opt.gutter;
-    var max = this._dataset.maxValue();
+    var opt = this.options, R = this.R, g = opt.gutter, max;
+    if (opt.grid.maxY === 'auto') {
+      max = Math.max.apply(Math, this._datasets.invoke('maxValue'));
+    } else {
+      max = opt.grid.maxY;
+    }
+    
     
     // Horizontal space between each node.
-    var xScale = (opt.width - (g.left + g.right)) / (this._dataset.dataLength() - 1);
+    var xScale = (opt.width - (g.left + g.right)) /
+     (this._datasets.first().dataLength() - 1);
+     
     // Vertical scale 
-    var yScale = (opt.height - (g.bottom + g.top)) / max;
+    var yRange = opt.height - (g.top + g.bottom);
+    var yScale = yRange / max;
+    
+    var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
+    var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
         
     // Create the background grid.
     R.drawGrid(
@@ -26,8 +37,8 @@ Chart.Line = Class.create(Chart.Base, {
       g.top,                            /* Y                 */
       opt.width  - (g.left + g.right),  /* width             */
       opt.height - (g.top + g.bottom),  /* height            */
-      0,                                /* number of columns */
-      10,                               /* number of rows    */
+      columns,                          /* number of columns */
+      rows,                             /* number of rows    */
       opt.grid.color                    /* color             */
     );
     
@@ -40,18 +51,15 @@ Chart.Line = Class.create(Chart.Base, {
     
     var $color = opt.line.color;
     if (opt.line.color instanceof Krang.Colorset) {
-      opt.line.color.setLength(this._dataset.size());
+      opt.line.color.setLength(this._datasets.length);
     }
     
     var blanket = R.set();
     
-    function plotDataset(dataset) {
+    function plotDataset(dataset, index) {
       var data = dataset.toArray();
       
       // Create the path objects for the line and the fill.
-      
-      
-      
       var lineColor = $color.toString();
       var line = R.path({
         'stroke':          lineColor,
@@ -110,7 +118,18 @@ Chart.Line = Class.create(Chart.Base, {
         
         this._createObservers(rect);
 
-        blanket.push(rect);      
+        blanket.push(rect);
+        
+        // Draw X labels.
+        if (!index) {
+          var textStartY = g.top + yRange + Math.round(g.bottom / 2);
+
+          var text = R.text(x, textStartY, label).attr({
+            font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+            stroke: 'none',
+            fill: opt.text.color
+          });
+        }        
       }
 
       // Since the fill path is drawing a shape, not just a line, we need to
@@ -119,11 +138,29 @@ Chart.Line = Class.create(Chart.Base, {
       
     }
     
-    if (this._dataset instanceof Dataset.Multiple) {
-      this._dataset.each(plotDataset, this);
-    } else {
-      plotDataset(this._dataset, this);
-    }    
+    this._datasets.each(plotDataset, this);
+    
+    // Draw Y labels.    
+    var yStart = g.bottom, yEnd = opt.height - g.top;
+    
+    var value, yLabel, yPlot, text;
+    for (var j = 0, yLabel; j <= rows; j++) {
+      value  = (j / rows) * max;
+      yLabel = opt.grid.labelY(value);
+      yPlot  = yStart + ((j * yRange) / rows);
+      
+      text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
+        font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+        stroke: 'none',
+        fill: opt.text.color          
+      });
+      
+      // Fake right-alignment.
+      var textWidth = text.getBBox().width;
+      var textX = g.left - 15 - textWidth;
+      
+      text.attr({ x: textX, 'text-anchor': 'start' });
+    }
     
     blanket.toFront();
   },
@@ -176,17 +213,40 @@ Object.extend(Chart.Line, {
       right:  30
     },
     
+    grid: {
+      color: '#ddd',
+      
+      horizontal: {
+        enabled: true,
+        lines: 10
+      },
+      
+      vertical: {
+        enabled: false,
+        lines: 0
+      },
+      
+      labelX: Prototype.K,
+      labelY: function(value) {
+        return value.toFixed(1);
+      },
+      
+      maxY: 'auto'
+    },
+
     dot: {
       stroke: '#fff',
       radius: 4
     },
     
-    grid: {
-      color: '#ddd'
-    },
-    
     border: {
       color: '#999'
+    },
+    
+    text: {
+      fontFamily: '"Lucida Grande"',
+      fontSize:   '12px',
+      color:      "#000"
     }
   }
 });

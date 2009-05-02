@@ -28,7 +28,11 @@ Chart.Pie = Class.create(Chart.Base, {
   },
   
   draw: function() {
-    var opt = this.options, R = this.R, d = this._dataset;
+    if (this._datasets.length === 0) {
+      throw new Krang.Error("No datasets!");
+    }
+    
+    var opt = this.options, R = this.R, d = this._datasets.first();
     
     function sector(cx, cy, r, startAngle, endAngle, params) {
       var x1 = cx + r * Math.cos(-startAngle * Math.RAD),
@@ -49,7 +53,7 @@ Chart.Pie = Class.create(Chart.Base, {
     
     var $color = opt.wedge.color;
     if (opt.wedge.color instanceof Krang.Colorset) {
-      opt.wedge.color.setLength(this._dataset.dataLength());
+      opt.wedge.color.setLength(d.dataLength());
     }
             
     var label, value, wedge, wedgeSize, popAngle, color, bgColor;

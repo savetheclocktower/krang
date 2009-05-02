@@ -8,8 +8,8 @@ Chart.Bar = Class.create(Chart.Base, {
   },
   
   draw: function() {
-    if (!this._dataset) {
-      throw new Krang.Error("No dataset!");
+    if (this._datasets.length === 0) {
+      throw new Krang.Error("No datasets!");
     }
     
     var opt = this.options, R = this.R, g = opt.gutter;
@@ -17,14 +17,14 @@ Chart.Bar = Class.create(Chart.Base, {
     var max;
     
     if (opt.grid.maxY === 'auto') {
-      max = this._dataset.maxValuesSum();
+      max = Math.sum.apply(Math, this._datasets.invoke('maxValue'));
     } else {
       max = opt.grid.maxY;
     }
     
     // Width of each bar.
     var xScale = (opt.width - (g.left + g.right)) / 
-     (this._dataset.dataLength());
+     (this._datasets.first().dataLength());
      
     // Vertical scale of chart.
     var yRange = opt.height - (g.top + g.bottom);    
@@ -57,7 +57,7 @@ Chart.Bar = Class.create(Chart.Base, {
     
     var $color = opt.bar.color;
     if (opt.bar.color instanceof Krang.Colorset) {
-      opt.bar.color.setLength(this._dataset.size());
+      opt.bar.color.setLength(this._datasets.length);
     }
     
     function plotDataset(dataset, index) {
@@ -157,19 +157,14 @@ Chart.Bar = Class.create(Chart.Base, {
         fill: opt.text.color          
       });
       
-      // fake right-alignment
+      // Fake right-alignment.
       var textWidth = text.getBBox().width;
-      var textX = g.left - 10 - textWidth;
+      var textX = g.left - 15 - textWidth;
       
       text.attr({ x: textX, 'text-anchor': 'start' });
     }
-    
-    
-    if (this._dataset instanceof Dataset.Multiple) {
-      this._dataset.each(plotDataset, this);
-    } else {
-      plotDataset(this._dataset);
-    }    
+        
+    this._datasets.each(plotDataset, this);
   }
 });
 
@@ -218,7 +213,9 @@ Object.extend(Chart.Bar, {
       },
       
       labelX: Prototype.K,
-      labelY: Prototype.K,
+      labelY: function(value) {
+        return value.toFixed(1);
+      },
       
       maxY: 'auto'
     },
