@@ -51,12 +51,15 @@ Chart.Bar = Class.create(Chart.Base, {
     );
     
     // Draw the outer frame.
-    R.rect(
+    var frame = R.rect(
       g.left,
       g.top,
       opt.width  - (g.left + g.right),
       opt.height - (g.top + g.bottom)
-    ).attr({ stroke: opt.border.color });
+    ).attr({
+      'stroke':       opt.border.color,
+      'stroke-width': opt.border.width
+    });
     
     var barTotals = [];
     var label, value, x = 0, y, rect, startingY, barX, barY;
@@ -117,15 +120,9 @@ Chart.Bar = Class.create(Chart.Base, {
         
         var colorObj = Krang.Color.fromString(color);
         
-        var gradient = {
-          type: 'linear',
-          dots: [
-            { color: colorObj.lighterBy(0.05).toHexString() },
-            { color: colorObj.darkerBy( 0.05).toHexString() }
-          ],
-          vector: [0, 0, '100%', 0]
-        };
-        
+        var gradient = Object.clone(opt.bar.gradient);
+        gradient.dots = opt.bar.gradient.dots(colorObj);
+                
         barY = opt.stack ? startingY : 0;
         barX = opt.stack ? (x + (opt.bar.gutter / 2)) : 
           x + (opt.bar.gutter / 2) + (barWidth * index);
@@ -152,14 +149,23 @@ Chart.Bar = Class.create(Chart.Base, {
           var textStartY = positions[opt.bar.label.position] || position.above;
           
           var text = R.text(x, textStartY, opt.bar.label.filter(value)).attr({
-            font: '#{0} #{1}'.interpolate(
+            font: '#{0} "#{1}"'.interpolate(
              [opt.bar.label.fontSize, opt.bar.label.fontFamily]),
              stroke: 'none',
              fill: opt.bar.label.color
           });
           
           var textWidth = text.getBBox().width;
-          var textX     = Math.round(textBoxWidth / 2);
+          
+          // TODO: Figure out a way to render bar labels correctly
+          // on stacked bar charts.
+          var textX;
+          if (opt.stack) {
+            textX = Math.round(barWidth / 2);
+          } else {
+            textX = (index * barWidth) + Math.round(barWidth / 2);
+          }
+          
           text.attr({ x: Math.round(x + textX + (opt.bar.gutter / 2)) });          
         }
         
@@ -193,7 +199,7 @@ Chart.Bar = Class.create(Chart.Base, {
       yPlot = yStart + ((j * yRange) / rows);
       
       text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
-        font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+        font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
         stroke: 'none',
         fill: opt.text.color          
       });
@@ -206,6 +212,8 @@ Chart.Bar = Class.create(Chart.Base, {
     }
         
     this._datasets.each(plotDataset, this);
+    
+    frame.toFront();
   }
 });
 
@@ -215,31 +223,65 @@ Object.extend(Chart.Bar, {
     width:  800,
     height: 300,
     bar: {
+      /*  
+       *  Color of the bar. Can be a string or a `Colorset`; if the latter,
+       *  a new color will be retrieved from the set for each dataset in the
+       *  chart.
+       */ 
       color: new Krang.Colorset({
         vary: 'l',
         hue: 0.25,
         saturation: 0.6
       }),
+
+      /*
+       *  Border of the bar. If `color` is set to `auto`, the border will be a
+       *  slightly-darker shade of the bar's fill color.
+       */ 
       border: {
         width: 0,
         color: 'auto'
       },
+      
+      /*
+       *  How much space to leave on either side of a bar (or bar group).
+       */ 
       gutter: 5,
       opacity: 1.0,
+      
+      /*
+       *  If enabled, will place a text label on a bar that shows the bar's
+       *  value. The `position` can be one of `above`, `below`, `top`, or 
+       *  `bottom`. The `filter` callback can alter the value for display.
+       */       
       label: {
-        enabled: false,
-        position: 'above',
-        fontFamily: '"Lucida Grande"',
+        enabled:    false,
+        position:   'above',
+        fontFamily: 'Lucida Grande',
         fontSize:   '12px',
-        color:      "#000"
+        color:      "#000",
+        filter:     Prototype.K
+      },
+      
+      /*
+       *  A gradient to apply to the bar.
+       */       
+      gradient: {
+        type: 'linear',
+        dots: function(colorObj) {
+          return [
+            { color: colorObj.lighterBy(0.05).toHexString() },
+            { color: colorObj.darkerBy(0.05).toHexString()  }
+          ];
+        },
+        vector: [0, 0, '100%', 0]
       }
     },
     
-    fill: {
-      color: '#039',
-      opacity: 0.3
-    },
-    
+    /* 
+     *  How much space to leave around the chart itself. There are non-zero
+     *  defaults here to leave room for axis labels.
+     */ 
     gutter: {
       top:    20,
       bottom: 30,
@@ -247,33 +289,41 @@ Object.extend(Chart.Bar, {
       right:  30
     },
     
-    grid: {
-      color: '#ddd',
+    /* The chart's grid. */
+    grid: {               
+      color: '#eee',      /* Color of the gridlines. */
       
       horizontal: {
-        enabled: true,
+        enabled: true,    /* Whether to draw horizontal gridlines. */
         lines: 10
       },
       
       vertical: {
-        enabled: false,
+        enabled: false,   /* Whether to draw vertical gridlines. */
         lines: 0
       },
       
-      labelX: Prototype.K,
+      /* Callbacks that format the labels for display. */
+      labelX: Prototype.K,  
       labelY: function(value) {
         return value.toFixed(1);
-      },
+      }, 
       
+      /* 
+       * If set to 'auto', will determine a good max value based on the 
+       * scale of the chart. Otherwise one can specify a max value to use.
+       */ 
       maxY: 'auto'
     },
     
-    border: {
-      color: '#999'
+    /* Border around the chart itself. */    
+    border: {           
+      color: '#bbb',
+      width: 1
     },
     
     text: {
-      fontFamily: '"Lucida Grande"',
+      fontFamily: 'Lucida Grande',
       fontSize:   '12px',
       color:      "#000"
     },
