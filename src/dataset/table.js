@@ -13,7 +13,7 @@ Dataset.Table = Class.create(Dataset.Base, Krang.Mixin.Configurable, {
     });
     this.values = this.element.select(opt.values).map( function(node) {
       return opt.valueFilter(node.innerHTML);
-    });
+    });    
   }
 });
 
@@ -25,7 +25,9 @@ Object.extend(Dataset.Table, {
     labels: 'tbody > tr > td:first-child',
     values: 'tbody > tr > td:last-child',
     
-    labelFilter: Prototype.K,
+    labelFilter: function(text) {
+      return text.strip();
+    },
     valueFilter: function(text) {
       return Number(text);
     }

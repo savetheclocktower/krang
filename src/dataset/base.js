@@ -21,5 +21,12 @@ Dataset.Base = Class.create({
   
   maxValue: function() {
     return Math.max.apply(Math, this.values);
+  },
+  
+  reverse: function() {
+    this.labels = this.labels.reverse();
+    this.values = this.values.reverse();
+    
+    return this;
   }  
 });
