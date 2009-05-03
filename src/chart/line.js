@@ -125,7 +125,7 @@ Chart.Line = Class.create(Chart.Base, {
           var textStartY = g.top + yRange + Math.round(g.bottom / 2);
 
           var text = R.text(x, textStartY, label).attr({
-            font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+            font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
             stroke: 'none',
             fill: opt.text.color
           });
@@ -150,7 +150,7 @@ Chart.Line = Class.create(Chart.Base, {
       yPlot  = yStart + ((j * yRange) / rows);
       
       text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
-        font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
+        font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
         stroke: 'none',
         fill: opt.text.color          
       });
@@ -244,7 +244,7 @@ Object.extend(Chart.Line, {
     },
     
     text: {
-      fontFamily: '"Lucida Grande"',
+      fontFamily: 'Lucida Grande',
       fontSize:   '12px',
       color:      "#000"
     }
