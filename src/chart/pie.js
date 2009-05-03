@@ -56,13 +56,21 @@ Chart.Pie = Class.create(Chart.Base, {
       opt.wedge.color.setLength(d.dataLength());
     }
             
-    var label, value, wedge, wedgeSize, popAngle, color, bgColor;
+    var label, value, wedge, wedgeSize, popAngle, color, colorObj, bgColor;
     for (var i = 0, l = d.labels.length; i < l; i++) {
       label = d.labels[i], value = d.values[i];
       
       wedgeSize = (360 * value) / total;
       popAngle = angle + (wedgeSize / 2);
-      color = $color.toString();
+
+      color = $color.toString();            
+      colorObj = Krang.Color.fromString(color);
+      
+      var gradient = Object.clone(opt.wedge.gradient);
+      
+      gradient.dots = opt.wedge.gradient.dots(colorObj);
+      
+      //console.log(colorObj.lighterBy(0.25).toHexString());
       
       wedge = sector(
         this._center.x,
@@ -72,6 +80,8 @@ Chart.Pie = Class.create(Chart.Base, {
         angle + wedgeSize,
         { fill: color, stroke: opt.wedge.stroke }
       );
+      
+      wedge.attr({ gradient: gradient });
       
       bgColor = Raphael.rgb2hsb(color);
       bgColor = Raphael.hsb2rgb(bgColor.h, bgColor.s, 1).hex;
@@ -103,7 +113,18 @@ Object.extend(Chart.Pie, {
         hue: 0.2,
         saturation: 0.6,
         lightness: 0.7
-      })
+      }),
+      
+      gradient: {
+        type: 'linear',
+        dots: function(colorObj) {
+          return [
+            { color: colorObj.lighterBy(0.05).toHexString() },
+            { color: colorObj.darkerBy(0.05).toHexString()  }
+          ];
+        },
+        vector: [0, 0, '100%', 0]
+      }
     },
     
     animation: {
