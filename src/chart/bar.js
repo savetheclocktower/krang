@@ -19,7 +19,11 @@ Chart.Bar = Class.create(Chart.Base, {
     var max;
     
     if (opt.grid.maxY === 'auto') {
-      max = Math.sum.apply(Math, this._datasets.invoke('maxValue'));
+      if (opt.stack) {
+        max = Math.sum.apply(Math, this._datasets.invoke('maxValue'));
+      } else {
+        max = Math.max.apply(Math, this._datasets.invoke('maxValue'));
+      }
     } else {
       max = opt.grid.maxY;
     }
