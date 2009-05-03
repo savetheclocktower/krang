@@ -4,10 +4,12 @@ Chart.Bar = Class.create(Chart.Base, {
   initialize: function($super, canvas, options) {
     $super(canvas);
     this.setOptions(options);
-    this.R = Raphael(canvas, this.options.width, this.options.height);
+    this.canvas = canvas;
   },
   
   draw: function() {
+    if (this.R) this.R.remove();
+    this.R = Raphael(this.canvas, this.options.width, this.options.height);
     if (this._datasets.length === 0) {
       throw new Krang.Error("No datasets!");
     }
@@ -53,7 +55,7 @@ Chart.Bar = Class.create(Chart.Base, {
     ).attr({ stroke: opt.border.color });
     
     var barTotals = [];
-    var label, value, x = 0, y, rect, startingY;
+    var label, value, x = 0, y, rect, startingY, barX, barY;
     
     var $color = opt.bar.color;
     if (opt.bar.color instanceof Krang.Colorset) {
@@ -71,8 +73,8 @@ Chart.Bar = Class.create(Chart.Base, {
         y = Math.round((yScale * value));
         x = Math.round(g.left + (xScale * i));
         
-        // Because the bars stack in the case of multiple datasets, we have to
-        // keep track of the total height of each bar.
+        // Because the bars may stack in the case of multiple datasets, we
+        // have to keep track of the total height of each bar.
         if (Object.isUndefined(barTotals[i])) {
           startingY = 0;
           barTotals[i] = y;
@@ -81,7 +83,14 @@ Chart.Bar = Class.create(Chart.Base, {
           barTotals[i] += y;
         }
         
-        barWidth = Math.round(xScale - opt.bar.gutter);
+        
+        textBoxWidth = Math.round(xScale - opt.bar.gutter);
+        if (opt.stack) {
+          barWidth = textBoxWidth;
+        } else {
+          barWidth = Math.round(
+           (xScale - opt.bar.gutter) / this._datasets.length);
+        }
         
         var attrs = {
           fill:    color,
@@ -90,7 +99,6 @@ Chart.Bar = Class.create(Chart.Base, {
         };
         
         if (opt.bar.border.width > 0) {
-          
           var borderColor = opt.bar.border.color;
           
           borderColor = (borderColor === 'auto') ?
@@ -114,11 +122,15 @@ Chart.Bar = Class.create(Chart.Base, {
           vector: [0, 0, '100%', 0]
         };
         
+        barY = opt.stack ? startingY : 0;
+        barX = opt.stack ? (x + (opt.bar.gutter / 2)) : 
+          x + (opt.bar.gutter / 2) + (barWidth * index);
+        
         
         // Draw the bar.
         R.rect(
-          Math.round(x + (opt.bar.gutter / 2)),
-          (g.top + yRange) - y - startingY,
+          barX,
+          (g.top + yRange) - y - barY,
           barWidth,
           y
         ).attr(attrs).attr({ gradient: gradient });
@@ -134,7 +146,7 @@ Chart.Bar = Class.create(Chart.Base, {
           });
 
           var textWidth = text.getBBox().width;
-          var textX = Math.round(barWidth / 2);
+          var textX = Math.round(textBoxWidth / 2);
           
           text.attr({ x: Math.round(x + textX + (opt.bar.gutter / 2)) });
         }
@@ -228,6 +240,8 @@ Object.extend(Chart.Bar, {
       fontFamily: '"Lucida Grande"',
       fontSize:   '12px',
       color:      "#000"
-    }
+    },
+    
+    stack: false
   }
 });

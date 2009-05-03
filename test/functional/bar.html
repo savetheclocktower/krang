@@ -47,10 +47,19 @@
   	      labelY: function(value) {
   	        return "$" + value.toFixed(2);
   	      }
-  	    }
+  	    },
+  	    
+  	    stack: true
   	  });
 
   	  bar.addDataset(dataset, dataset2, dataset3).draw();
+  	  
+  	  $('toggle').observe('click', function(event) {
+  	    (function() {
+    	    bar.options.stack = event.element().checked;
+    	    bar.draw();  	      
+  	    }).defer();
+  	  })
 	  });
 	
 	</script>
@@ -114,6 +123,10 @@
   <div id="chart">
     
   </div> <!-- #chart -->
+  
+  <label>
+    <input type="checkbox" id="toggle" /> Stack bars
+  </label>
 
 
 </body>

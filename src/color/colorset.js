@@ -42,6 +42,7 @@ Krang.Colorset = Class.create(Krang.Mixin.Configurable, {
   
   setLength: function(length) {
     this._length = length;
+    this._index = 0;
     this._getColors();
   }
 });
