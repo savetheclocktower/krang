@@ -74,7 +74,7 @@ Chart.Bar = Class.create(Chart.Base, {
       for (var i = 0, l = data.length; i < l; i++) {
         label = data[i].label, value = data[i].value;
         
-        y = Math.round((yScale * value));
+        y = Math.round((yScale * value) - (opt.bar.border.width));
         x = Math.round(g.left + (xScale * i));
         
         // Because the bars may stack in the case of multiple datasets, we
@@ -107,7 +107,7 @@ Chart.Bar = Class.create(Chart.Base, {
           
           borderColor = (borderColor === 'auto') ?
             Krang.Color.fromString(color).darkerBy(0.05).toHexString() :
-            Colorset.interpret(borderColor);
+            Krang.Colorset.interpret(borderColor);
             
           Object.extend(attrs, {
             'stroke':       borderColor,
@@ -134,23 +134,48 @@ Chart.Bar = Class.create(Chart.Base, {
         // Draw the bar.
         R.rect(
           barX,
-          (g.top + yRange) - y - barY,
+          (g.top + yRange) - y - barY - (opt.bar.border.width / 2),
           barWidth,
           y
         ).attr(attrs).attr({ gradient: gradient });
         
+        if (opt.bar.label.enabled) {
+          var topOfBar    = (g.top + yRange) - y - barY;
+          var bottomOfBar = g.top + yRange;
+          var positions = {
+            above:  topOfBar - 15,
+            top:    topOfBar + 10,
+            bottom: bottomOfBar - 10,
+            below:  bottomOfBar + 15
+          };
+          
+          var textStartY = positions[opt.bar.label.position] || position.above;
+          
+          var text = R.text(x, textStartY, opt.bar.label.filter(value)).attr({
+            font: '#{0} #{1}'.interpolate(
+             [opt.bar.label.fontSize, opt.bar.label.fontFamily]),
+             stroke: 'none',
+             fill: opt.bar.label.color
+          });
+          
+          var textWidth = text.getBBox().width;
+          var textX     = Math.round(textBoxWidth / 2);
+          text.attr({ x: Math.round(x + textX + (opt.bar.gutter / 2)) });          
+        }
+        
+        
         // Only draw X-axis labels for the first set.
         if (!index) {
-          var textStartY = g.top + yRange + Math.round(g.bottom / 2);
+          textStartY = g.top + yRange + Math.round(g.bottom / 2);
 
-          var text = R.text(x, textStartY, label).attr({
+          text = R.text(x, textStartY, label).attr({
             font: '#{0} #{1}'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
             stroke: 'none',
             fill: opt.text.color          
           });
 
-          var textWidth = text.getBBox().width;
-          var textX = Math.round(textBoxWidth / 2);
+          textWidth = text.getBBox().width;
+          textX     = Math.round(textBoxWidth / 2);
           
           text.attr({ x: Math.round(x + textX + (opt.bar.gutter / 2)) });
         }
@@ -200,7 +225,14 @@ Object.extend(Chart.Bar, {
         color: 'auto'
       },
       gutter: 5,
-      opacity: 1.0
+      opacity: 1.0,
+      label: {
+        enabled: false,
+        position: 'above',
+        fontFamily: '"Lucida Grande"',
+        fontSize:   '12px',
+        color:      "#000"
+      }
     },
     
     fill: {

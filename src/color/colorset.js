@@ -91,5 +91,13 @@ Object.extend(Krang.Colorset, {
     return lums.map( function(l, index) {
       return Krang.Color.fromHSL({ h: hue, s: saturation, l: l });
     });
+  },
+  
+  interpret: function(value) {
+    if (value && value.next) {
+      return value.next();
+    }
+    
+    return value;
   }
 });
