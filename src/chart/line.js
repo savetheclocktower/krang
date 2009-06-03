@@ -59,8 +59,8 @@ Chart.Line = Class.create(Chart.Base, {
     ).attr({ stroke: opt.border.color });
     
     var $color = opt.line.color;
-    if (opt.line.color instanceof Krang.Colorset) {
-      opt.line.color.setLength(this._datasets.length);
+    if ($color instanceof Krang.Colorset) {
+      $color.setLength(this._datasets.length);
     }
     
     var blanket = R.set();
@@ -69,9 +69,17 @@ Chart.Line = Class.create(Chart.Base, {
       var data = dataset.toArray();
       
       // Create the path objects for the line and the fill.
+
+      // Fill color, if left unspecified, will be the same as the line
+      // color (with lower opacity).
+      var fillColor = opt.fill.color || opt.line.color;
+      if (opt.fill.color && opt.fill.color instanceof Krang.Colorset) {
+        fillColor.setLength(this._datasets.length);
+      }
+      
       var lineColor = $color.toString();
       var line = R.path({
-        'stroke':          lineColor,
+        'stroke':          fillColor.toString(),
         'stroke-width':    opt.line.width,
         'stroke-linejoin': 'round'
       });
