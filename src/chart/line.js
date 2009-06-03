@@ -139,8 +139,8 @@ Chart.Line = Class.create(Chart.Base, {
         
         // Draw X labels.
         if (!index) {
-          var textStartY = g.top + yRange + Math.round(g.bottom / 2);
-
+          var textStartY = g.top + yRange + Math.round(g.bottom / 2);          
+          label = opt.grid.labelX(label);
           var text = R.text(x, textStartY, label).attr({
             font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
             stroke: 'none',
