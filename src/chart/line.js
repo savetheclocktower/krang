@@ -30,6 +30,15 @@ Chart.Line = Class.create(Chart.Base, {
     
     var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
     var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
+    
+    // Do a separate background fill before creating the grid.
+    R.rect(
+      g.left,
+      g.top,
+      opt.width  - (g.left + g.right),
+      opt.height - (g.top + g.bottom)
+    ).attr({ fill: opt.grid.color });
+    
         
     // Create the background grid.
     R.drawGrid(
