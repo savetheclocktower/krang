@@ -230,24 +230,30 @@ Object.extend(Chart.Line, {
       right:  30
     },
     
-    grid: {
-      color: '#ddd',
+    /* The chart's grid. */
+    grid: {               
+      color: '#eee',      /* Color of the gridlines. */
       
       horizontal: {
-        enabled: true,
+        enabled: true,    /* Whether to draw horizontal gridlines. */
         lines: 10
       },
       
       vertical: {
-        enabled: false,
+        enabled: false,   /* Whether to draw vertical gridlines. */
         lines: 0
       },
       
-      labelX: Prototype.K,
+      /* Callbacks that format the labels for display. */
+      labelX: Prototype.K,  
       labelY: function(value) {
         return value.toFixed(1);
-      },
+      }, 
       
+      /* 
+       * If set to 'auto', will determine a good max value based on the 
+       * scale of the chart. Otherwise one can specify a max value to use.
+       */ 
       maxY: 'auto'
     },
 
@@ -256,6 +262,7 @@ Object.extend(Chart.Line, {
       radius: 4
     },
     
+    /* Border around the chart itself. */    
     border: {
       color: '#999'
     },
