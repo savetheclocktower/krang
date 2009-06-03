@@ -5,7 +5,7 @@ Krang.deepExtend = function(destination, source) {
     if (source[property] === null || type !== 'object')
       deep = false;
       
-    if (Object.isElement(source[propety]))
+    if (Object.isElement(source[property]))
       deep = false;
       
     if (source[property] && source[property].constructor &&
@@ -41,7 +41,7 @@ Krang.Mixin.Configurable = {
         Krang.deepExtend(this.options, chain[i].DEFAULT_OPTIONS || {});
     }
     
-    Krang.deepExtend(this.options, constructor.DEFAULT_OPTIONS);
+    Krang.deepExtend(this.options, constructor.DEFAULT_OPTIONS || {});
     return Krang.deepExtend(this.options, options || {});
   }
 };
