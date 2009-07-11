@@ -1,12 +1,22 @@
-
+/**
+ *  class Chart.Line < Chart.Base
+ *  
+ *  A class for drawing line graphs.
+**/
 
 Chart.Line = Class.create(Chart.Base, {
+  /**
+   *  new Chart.Line(canvas, options)
+  **/
   initialize: function($super, canvas, options) {
     $super(canvas);
     this.setOptions(options);    
     this.R = Raphael(canvas, this.options.width, this.options.height);
   },
   
+  /**
+   *  Chart.Line#draw() -> undefined
+  **/
   draw: function() {
     if (this._datasets.length === 0) {
       throw new Krang.Error("No dataset!");

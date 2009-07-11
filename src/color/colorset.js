@@ -1,6 +1,14 @@
-
+/**
+ *  class Krang.Colorset
+ *  includes Krang.Mixin.Configurable
+ *  
+ *  A class for managing a family of colors for use in a graph.
+**/
 
 Krang.Colorset = Class.create(Krang.Mixin.Configurable, {
+  /**
+   *  new Krang.Colorset(options)
+  **/
   initialize: function(options) {
     this.setOptions(options);
             
@@ -28,6 +36,9 @@ Krang.Colorset = Class.create(Krang.Mixin.Configurable, {
     }  
   },
   
+  /**
+   *  Krang.Colorset#next() -> String
+  **/
   next: function() {
     if (this._index === this._colors.length)
       this._index = 0;
@@ -36,10 +47,16 @@ Krang.Colorset = Class.create(Krang.Mixin.Configurable, {
     return color.toHexString();    
   },
   
+  /**
+   *  Krang.Colorset#toString() -> String
+  **/
   toString: function() {
     return this.next();
   },
   
+  /**
+   *  Krang.Colorset#setLength(length) -> undefined
+  **/
   setLength: function(length) {
     this._length = length;
     this._index = 0;
@@ -57,6 +74,9 @@ Object.extend(Krang.Colorset, {
     lightness:  0.70
   },
   
+  /**
+   *  Krang.Colorset.varyHue(size, saturation, lightness) -> [Krang.Color...]
+  **/
   varyHue: function(size, saturation, lightness) {
     var hues = [];
     
@@ -69,6 +89,9 @@ Object.extend(Krang.Colorset, {
     });
   },
   
+  /**
+   *  Krang.Colorset.varySaturation(size, hue, lightness) -> [Krang.Color...]
+  **/
   varySaturation: function(size, hue, lightness) {
     var sats = [];
     
@@ -81,6 +104,9 @@ Object.extend(Krang.Colorset, {
     });
   },
   
+  /**
+   *  Krang.Colorset.varyLightness(size, hue, saturation) -> [Krang.Color...]
+  **/
   varyLightness: function(size, hue, saturation) {
     var lums = [];
     
@@ -93,6 +119,9 @@ Object.extend(Krang.Colorset, {
     });
   },
   
+  /**
+   *  Krang.Colorset.interpret(value) -> Krang.Color | String
+  **/
   interpret: function(value) {
     if (value && value.next) {
       return value.next();

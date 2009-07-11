@@ -8,7 +8,16 @@ Math.sum = function() {
   return total;
 };
 
+/**
+ *  class Chart.Pie < Chart.Base
+ *  
+ *  A class for drawing pie charts.
+**/
+
 Chart.Pie = Class.create(Chart.Base, {
+  /**
+   *  new Chart.Pie(canvas, options)
+  **/
   initialize: function($super, canvas, options) {
     $super(canvas);
     this.setOptions(options);
@@ -27,6 +36,9 @@ Chart.Pie = Class.create(Chart.Base, {
     );
   },
   
+  /**
+   *  Chart.Pie#draw() -> undefined
+  **/
   draw: function() {
     if (this._datasets.length === 0) {
       throw new Krang.Error("No datasets!");

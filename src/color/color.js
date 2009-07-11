@@ -26,13 +26,22 @@
     return val;
   }
   
-
+  /**
+   *  class Krang.Color
+   *  
+   *  An abstract representation of a color.
+  **/
   window.Krang.Color = Class.create({
     initialize: function(r, g, b, a) {
       a = Object.isUndefined(a) ? 1.0 : a;    
       this.rgb = { r: r, g: g, b: b, a: a };
     },
 
+    /**
+     *  Krang.Color#toRGBString() -> String
+     *  
+     *  Returns the CSS-like `rgb(` (or `rgba(`) notation of the color.
+    **/
     toRGBString: function() {
       var c = this.rgb;
       var str = this._rgbString;
@@ -55,10 +64,21 @@
       return str;
     },
     
+    /**
+     *  Krang.Color#asRGB() -> Krang.Color
+     *  
+     *  Returns an instance of `Krang.Color` representing the pure color
+     *  with no alpha channel.
+    **/
     asRGB: function() {
       return Object.clone(this.rgb);
     },
     
+    /**
+     *  Krang.Color.toHexString() -> String
+     *  
+     *  Returns the hex code for the color (prepended with `#`).
+    **/
     toHexString: function() {
       var c = this.rgb, str = this._hexString;
       
@@ -74,6 +94,9 @@
       return str;
     },
     
+    /**
+     *  Krang.Color.asHSV() -> Krang.Color
+    **/
     asHSV: function() {
       if (!this.hsv) {
         this.hsv = Krang.Color.rgbToHSV(this.rgb);
@@ -81,6 +104,9 @@
       return Object.clone(this.hsv);
     },
     
+    /**
+     *  Krang.Color.asHSL() -> Krang.Color
+    **/
     asHSL: function() {
       if (!this.hsl) {
         this.hsl = Krang.Color.rgbToHSL(this.rgb);
@@ -88,17 +114,24 @@
       return Object.clone(this.hsl);
     },
     
+    /**
+     *  Krang.Color#toString() -> String
+    **/
     toString: function() {
       return this.toRGBString();
     },
     
-    
-    
+    /**
+     *  Krang.Color#colorWithAlpha(alpha) -> Krang.Color
+    **/
     colorWithAlpha: function(alpha) {
       var rgb = this.rgb;
       return Krang.Color.fromRGB(rgb.r, rgb.g, rgb.b, alpha);
     },
     
+    /**
+     *  Krang.Color#colorWithHue(hue) -> Krang.Color
+    **/
     colorWithHue: function(hue) {
       var hsl = this.asHSL();
       hsl.h = hue;

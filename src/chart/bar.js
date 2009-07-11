@@ -1,5 +1,9 @@
 
-
+/**
+ *  class Chart.Bar < Chart.Base
+ *  
+ *  A class for drawing bar charts.
+**/
 Chart.Bar = Class.create(Chart.Base, {
   initialize: function($super, canvas, options) {
     $super(canvas);
@@ -7,6 +11,11 @@ Chart.Bar = Class.create(Chart.Base, {
     this.canvas = canvas;
   },
   
+  /**
+   *  Chart.Bar#draw() -> undefined
+   *  
+   *  Draws the chart.
+  **/
   draw: function() {
     if (this.R) this.R.remove();
     this.R = Raphael(this.canvas, this.options.width, this.options.height);

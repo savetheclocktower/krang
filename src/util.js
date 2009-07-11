@@ -17,6 +17,11 @@
   }
 
   window.Krang.Data = {
+    /**
+     *  Krang.Data.store(node, key, value) -> undefined
+     *  
+     *  Store arbitrary data with a Raphael drawing node.
+    **/
     store: function(node, key, value) {
       if (typeof key === 'object' && arguments.length === 2) {
         var object = key;
@@ -31,6 +36,12 @@
       }
     },
     
+    /**
+     *  Krang.Data.retrieve(node, key, defaultValue) -> ?
+     *  
+     *  Retrieve arbitrary data that has been associated with a Raphael
+     *  drawing node.
+    **/
     retrieve: function(node, key, defaultValue) {
       var hash = _getHash(node), value = hash.get(key);
             

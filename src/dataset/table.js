@@ -1,6 +1,12 @@
 
-
+/**
+ *  class Dataset.Table < Dataset.Base
+ *  includes Krang.Mixin.Configurable
+**/
 Dataset.Table = Class.create(Dataset.Base, Krang.Mixin.Configurable, {
+  /**
+   *  new Dataset.Table(element, options)
+  **/
   initialize: function(element, options) {
     this.element = $(element);
     this.setOptions(options);

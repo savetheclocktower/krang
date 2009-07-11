@@ -1,9 +1,20 @@
+/**
+ *  class Chart.Base
+ *  includes Krang.Mixin.Configurable
+**/
+
 Chart.Base = Class.create(Krang.Mixin.Configurable, {
+  /**
+   *  new Chart.Base(canvas)
+  **/
   initialize: function(canvas) {
     this.canvas = $(canvas);
     this._datasets = [];
   },
   
+  /**
+   *  Chart.Base#addDataset(datasets...) -> this
+  **/
   addDataset: function() {
     var datasets = $A(arguments);
     
@@ -18,15 +29,23 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
     return this;
   },
   
+  /**
+   *  Chart.Base#removeDataset(datasets...) -> this
+  **/
   removeDataset: function() {
     var datasets = $A(arguments);
     datasets.each( function(dataset) {
       this._datasets = this._datasets.without(dataset);
     }, this);
+    return this;
   },
   
+  /**
+   *  Chart.Base#clearDatasets() -> this
+  **/
   clearDatasets: function() {
     this._datasets = [];
+    return this;
   },
   
   draw: function() {
