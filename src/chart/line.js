@@ -78,14 +78,24 @@ Chart.Line = Class.create(Chart.Base, {
       }
       
       var lineColor = $color.toString();
+      
+      // Mark the color on the dataset so we can read it later (e.g., for
+      // building a graph legend).
+      dataset.color = lineColor;
+      
       var line = R.path({
-        'stroke':          fillColor.toString(),
+        'stroke':          lineColor,
         'stroke-width':    opt.line.width,
         'stroke-linejoin': 'round'
-      });
+      });      
       
+      var fillColor = opt.fill.color || lineColor;
+      if (opt.fill.color && opt.fill.color instanceof Krang.Colorset) {
+        fillColor.setLength(this._datasets.length);
+      }
+
       var fill = R.path({
-        fill:    lineColor,
+        fill:    fillColor.toString(),
         opacity: opt.fill.opacity,
         stroke:  'none'
       });
@@ -116,14 +126,15 @@ Chart.Line = Class.create(Chart.Base, {
           stroke: opt.dot.stroke
         });
 
-        // Create an invisible rectangle that will receive hover events.
+        // Create an invisible, roughly-square box that will serve as the
+        // hover zone for this point.
         rect = R.rect(
-          g.left + (xScale * i),
-          0,
-          xScale,
-          opt.height - g.bottom
+          g.left + (xScale * i) - (xScale / 16), /* x      */
+          y - (xScale / 16),                     /* y      */
+          xScale / 8,                               /* width  */
+          xScale / 8                                /* height */
         ).attr({
-          stroke:  'none',
+          stroke:  '#000',
           fill:    '#fff',
           opacity: 0
         });
@@ -133,7 +144,7 @@ Chart.Line = Class.create(Chart.Base, {
           data: data[i]
         });
         
-        this._createObservers(rect);
+        this._createObservers(rect, dot);
 
         blanket.push(rect);
         
@@ -182,24 +193,41 @@ Chart.Line = Class.create(Chart.Base, {
     blanket.toFront();
   },
   
-  _createObservers: function(rect) {
+  _createObservers: function(rect, dot) {
+    var position = {
+      x: dot.attrs.cx,
+      y: dot.attrs.cy  
+    };
+    
+    var canvas = this.canvas;
+    
     var over = function() {
       var dot = Krang.Data.retrieve(rect, 'dot'),
          data = Krang.Data.retrieve(rect, 'data');
          
-      Event.fire(rect.node, 'krang:mouseover', { dot: dot, data: data });
+      Event.fire(canvas, 'krang:mouseover',
+       { dot: dot, data: data, position: position });
     };
     
     var out = function() {
       var dot = Krang.Data.retrieve(rect, 'dot'),
          data = Krang.Data.retrieve(rect, 'data');
          
-      Event.fire(rect.node, 'krang:mouseout', { dot: dot, data: data });
+      Event.fire(canvas, 'krang:mouseout',
+        { dot: dot, data: data, position: position });
     };
     
-    Event.observe(rect.node, 'mouseover', over);
-    Event.observe(rect.node, 'click',     out );
-    Event.observe(rect.node, 'mouseout',  out );    
+    var click = function() {
+      var dot = Krang.Data.retrieve(rect, 'dot'),
+         data = Krang.Data.retrieve(rect, 'data');
+         
+      Event.fire(canvas, 'krang:click',
+        { dot: dot, data: data, position: position });
+    };
+    
+    rect.mouseover(over);
+    rect.mouseout(out);
+    rect.click(out);
   }
 });
 
@@ -219,7 +247,6 @@ Object.extend(Chart.Line, {
     },
     
     fill: {
-      color: '#039',
       opacity: 0.3
     },
     
