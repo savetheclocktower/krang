@@ -54,11 +54,23 @@ Chart.Pie = Class.create(Chart.Base, {
           y1 = cy + r * Math.sin(-startAngle * Math.RAD),
           y2 = cy + r * Math.sin(-endAngle   * Math.RAD);
           
+      // Snap to pixel values.
+      x1 = Math.ceil(x1);
+      x2 = Math.ceil(x2); 
+      y1 = Math.ceil(y1);
+      y2 = Math.ceil(y2);
+          
+      // FIXME: Quick way to ensure that a pie chart with one datum will
+      // draw the _entire circle_, not just a tiny sliver.
+      if (x1 == x2 && y1 == y2) y1--;
+      
+      var isLarge = ((endAngle - startAngle) > 180);
+          
       return R.path(params)
         .moveTo(cx, cy)
         .lineTo(x1, y1)
-        .arcTo(r, r, ((endAngle - startAngle > 180) ? 1 : 0), 0, x2, y2)
-        .andClose();
+        .arcTo(r, r, (isLarge ? 1 : 0), 0, x2, y2)
+        .lineTo(cx, cy);
     }
     
     var angle = 0, total = 0;
@@ -95,18 +107,33 @@ Chart.Pie = Class.create(Chart.Base, {
         { fill: color, stroke: opt.wedge.stroke }
       );
       
+      Krang.Data.store(wedge, { data: { label: label, value: value } });
+      
       wedge.attr({ gradient: gradient });
       
       bgColor = Raphael.rgb2hsb(color);
       bgColor = Raphael.hsb2rgb(bgColor.h, bgColor.s, 1).hex;
       
+      var canvas = this.canvas;
       (function(wedge) {        
-        wedge.mouseover(function() {
-          Event.fire(wedge, 'krang:mouseover', { wedge: wedge });
+        wedge.mouseover(function(event) {
+          Event.extend(event);
+          var data = Krang.Data.retrieve(wedge, 'data');
+          Event.fire(canvas, 'krang:mouseover', {
+            wedge: wedge,
+            data:  data,
+            relatedTarget: event.relatedTarget
+          });
         });
         
-        wedge.mouseout( function() {
-          Event.fire(wedge, 'krang:mouseout',  { wedge: wedge });
+        wedge.mouseout( function(event) {
+          Event.extend(event);
+          var data = Krang.Data.retrieve(wedge, 'data');
+          Event.fire(canvas, 'krang:mouseout',  {
+            wedge: wedge,
+            data:  data,
+            relatedTarget: event.relatedTarget
+          });
         });
       })(wedge);
       
