@@ -119,7 +119,7 @@ Chart.Line = Class.create(Chart.Base, {
 
       fill.moveTo(g.left, opt.height - g.bottom);
       
-      var label, value, x = 0, y, dot, rect;
+      var x = 0, labelPointer = 1, label, value, y, dot, rect;
       
       // Plot the values.
       for (var i = 0, l = data.length; i < l; i++) {
@@ -148,13 +148,17 @@ Chart.Line = Class.create(Chart.Base, {
         rect = R.rect(
           g.left + (xScale * i) - (xScale / 16), /* x      */
           y - (xScale / 16),                     /* y      */
-          xScale / 8,                               /* width  */
-          xScale / 8                                /* height */
+          xScale / 8,                            /* width  */
+          xScale / 8                             /* height */
         ).attr({
           stroke:  '#000',
           fill:    '#fff',
           opacity: 0
         });
+        
+        // Run all the labels through the specified filter.
+        var datum = data[i];
+        datum.label = opt.grid.labelX(datum.label);
         
         Krang.Data.store(rect, {
           dot:  dot,
@@ -167,6 +171,10 @@ Chart.Line = Class.create(Chart.Base, {
         
         // Draw X labels.
         if (!index) {
+          // Skip drawing the label if the options call for it.
+          if (labelPointerX++ % opt.grid.labelXFrequency !== 0)
+            continue;
+          
           var textStartY = g.top + yRange + Math.round(g.bottom / 2);          
           label = opt.grid.labelX(label);
           var text = R.text(x, textStartY, label).attr({
@@ -181,18 +189,25 @@ Chart.Line = Class.create(Chart.Base, {
       // close the path.
       fill.lineTo(x, opt.height - g.bottom).andClose();
       
+      // We want the fill to appear _behind_ the line, so that the bottom
+      // half of the line isn't obscured.
+      fill.insertBefore(line);
     }
     
     this._datasets.each(plotDataset, this);
     
     // Draw Y labels.    
-    var yStart = g.bottom, yEnd = opt.height - g.top;
+    var yStart = g.bottom, yEnd = opt.height - g.top, labelPointerY = 1;
     
     var value, yLabel, yPlot, text;
     for (var j = 0, yLabel; j <= rows; j++) {
       value  = (j / rows) * max;
       yLabel = opt.grid.labelY(value);
       yPlot  = yStart + ((j * yRange) / rows);
+      
+      // Skip drawing the label if the options call for it.
+      if (labelPointerY++ % opt.grid.labelYFrequency !== 0)
+        continue;
       
       text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
         font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
@@ -294,6 +309,13 @@ Object.extend(Chart.Line, {
       labelY: function(value) {
         return value.toFixed(1);
       }, 
+      
+      /*
+       * How often to draw labels. If set to `3`, for instance, only every
+       * third label will be drawn.  
+       */
+      labelXFrequency: 1,
+      labelYFrequency: 1,
       
       /* 
        * If set to 'auto', will determine a good max value based on the 
