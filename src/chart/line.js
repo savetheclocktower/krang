@@ -31,6 +31,11 @@ Chart.Line = Class.create(Chart.Base, {
       max = opt.grid.maxY;
     }
     
+    var dataLength = this._datasets.first().dataLength();
+    if (dataLength <= 1) {
+      // Not enough for a line chart.
+      throw new Krang.Error("Not enough data points!")
+    }
     
     // Horizontal space between each node.
     var xScale = (opt.width - (g.left + g.right)) /
