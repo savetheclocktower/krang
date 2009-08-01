@@ -54,7 +54,7 @@ Chart.Line = Class.create(Chart.Base, {
       g.top,
       opt.width  - (g.left + g.right),
       opt.height - (g.top + g.bottom)
-    ).attr({ fill: opt.grid.color });
+    ).attr({ fill: opt.grid.backgroundColor });
     
         
     // Create the background grid.
@@ -276,7 +276,8 @@ Object.extend(Chart.Line, {
     
     /* The chart's grid. */
     grid: {               
-      color: '#eee',      /* Color of the gridlines. */
+      color: '#ddd',            /* Color of the gridlines. */
+      backgroundColor: '#fff',  /* Color of the grid's background. */
       
       horizontal: {
         enabled: true,    /* Whether to draw horizontal gridlines. */
