@@ -40,6 +40,8 @@ Chart.Pie = Class.create(Chart.Base, {
    *  Chart.Pie#draw() -> undefined
   **/
   draw: function() {
+    this.clear();
+    
     if (this._datasets.length === 0) {
       throw new Krang.Error("No datasets!");
     }

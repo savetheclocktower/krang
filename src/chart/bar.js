@@ -9,6 +9,7 @@ Chart.Bar = Class.create(Chart.Base, {
     $super(canvas);
     this.setOptions(options);
     this.canvas = canvas;
+    this.R = Raphael(this.canvas, this.options.width, this.options.height);
   },
   
   /**
@@ -17,8 +18,8 @@ Chart.Bar = Class.create(Chart.Base, {
    *  Draws the chart.
   **/
   draw: function() {
-    if (this.R) this.R.remove();
-    this.R = Raphael(this.canvas, this.options.width, this.options.height);
+    this.clear();
+    
     if (this._datasets.length === 0) {
       throw new Krang.Error("No datasets!");
     }

@@ -50,6 +50,10 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   
   draw: function() {
     throw "Implement in subclass.";
+  },
+  
+  clear: function() {
+    if (this.R) this.R.clear();
   }
 });
 

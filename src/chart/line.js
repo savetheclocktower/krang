@@ -18,6 +18,8 @@ Chart.Line = Class.create(Chart.Base, {
    *  Chart.Line#draw() -> undefined
   **/
   draw: function() {
+    this.clear();
+
     if (this._datasets.length === 0) {
       throw new Krang.Error("No dataset!");
     }
