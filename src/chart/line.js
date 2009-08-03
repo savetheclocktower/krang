@@ -119,7 +119,7 @@ Chart.Line = Class.create(Chart.Base, {
 
       fill.moveTo(g.left, opt.height - g.bottom);
       
-      var x = 0, labelPointer = 1, label, value, y, dot, rect;
+      var x = 0, labelPointerX = 1, label, value, y, dot, rect;
       
       // Plot the values.
       for (var i = 0, l = data.length; i < l; i++) {
