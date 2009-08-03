@@ -1,10 +1,10 @@
 /**
- *  class Chart.Line < Chart.Base
+ *  class Chart.Line < Chart.Area
  *  
  *  A class for drawing line graphs.
 **/
 
-Chart.Line = Class.create(Chart.Base, {
+Chart.Line = Class.create(Chart.Area, {
   /**
    *  new Chart.Line(canvas, options)
   **/
@@ -47,33 +47,8 @@ Chart.Line = Class.create(Chart.Base, {
     
     var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
     var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
-    
-    // Do a separate background fill before creating the grid.
-    R.rect(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top + g.bottom)
-    ).attr({ fill: opt.grid.backgroundColor });
-    
         
-    // Create the background grid.
-    R.drawGrid(
-      g.left,                           /* X                 */
-      g.top,                            /* Y                 */
-      opt.width  - (g.left + g.right),  /* width             */
-      opt.height - (g.top + g.bottom),  /* height            */
-      columns,                          /* number of columns */
-      rows,                             /* number of rows    */
-      opt.grid.color                    /* color             */
-    );
-    
-    R.rect(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top + g.bottom)
-    ).attr({ stroke: opt.border.color });
+    this._drawGrid();
     
     var $color = opt.line.color;
     if ($color instanceof Krang.Colorset) {
@@ -222,6 +197,7 @@ Chart.Line = Class.create(Chart.Base, {
       text.attr({ x: textX, 'text-anchor': 'start' });
     }
     
+    this._frame.toFront();
     blanket.toFront();
   },
   

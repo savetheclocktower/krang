@@ -1,10 +1,10 @@
 
 /**
- *  class Chart.Bar < Chart.Base
+ *  class Chart.Bar < Chart.Area
  *  
  *  A class for drawing bar charts.
 **/
-Chart.Bar = Class.create(Chart.Base, {
+Chart.Bar = Class.create(Chart.Area, {
   initialize: function($super, canvas, options) {
     $super(canvas);
     this.setOptions(options);
@@ -24,8 +24,7 @@ Chart.Bar = Class.create(Chart.Base, {
       throw new Krang.Error("No datasets!");
     }
     
-    var opt = this.options, R = this.R, g = opt.gutter;
-    
+    var opt = this.options, R = this.R, g = opt.gutter;    
     var max;
     
     if (opt.grid.maxY === 'auto') {
@@ -46,30 +45,7 @@ Chart.Bar = Class.create(Chart.Base, {
     var yRange = opt.height - (g.top + g.bottom);    
     var yScale = yRange / max;
     
-    var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
-    var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
-    
-    // Draw the background grid.
-    R.drawGrid(
-      g.left,                           /* X                 */
-      g.top,                            /* Y                 */
-      opt.width  - (g.left + g.right),  /* width             */
-      opt.height - (g.top + g.bottom),  /* height            */
-      columns,                          /* number of columns */
-      rows,                             /* number of rows    */
-      opt.grid.color                    /* color             */
-    );
-    
-    // Draw the outer frame.
-    var frame = R.rect(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top + g.bottom)
-    ).attr({
-      'stroke':       opt.border.color,
-      'stroke-width': opt.border.width
-    });
+    this._drawGrid();
     
     var barTotals = [];
     var label, value, x = 0, y, rect, startingY, barX, barY;
