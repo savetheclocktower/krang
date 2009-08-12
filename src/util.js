@@ -51,6 +51,10 @@
       }
       
       return value;
+    },
+    
+    getHash: function(node) {
+      return _getHash(node);
     }
   };
 })();
