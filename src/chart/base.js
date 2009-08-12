@@ -10,6 +10,7 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   initialize: function(canvas) {
     this.canvas = $(canvas);
     this._datasets = [];
+    this._layerSet = new Krang.LayerSet();
   },
   
   /**
@@ -54,6 +55,10 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   
   clear: function() {
     if (this.R) this.R.clear();
+    if (this._layerSet) {
+      var keys = this._layerSet.keys();
+      keys.each( function(k) { this._layerSet.unset(k) }, this);
+    }
   }
 });
 

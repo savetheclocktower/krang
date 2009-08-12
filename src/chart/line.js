@@ -39,7 +39,7 @@ Chart.Line = Class.create(Chart.Area, {
     var dataLength = this._datasets.first().dataLength();
     if (dataLength <= 1) {
       // Not enough for a line chart.
-      throw new Krang.Error("Not enough data points!")
+      throw new Krang.Error("Not enough data points!");
     }
 
     // We want the grid to be one column _shorter_ than usual because the
@@ -60,6 +60,12 @@ Chart.Line = Class.create(Chart.Area, {
       return y / (grid.height / max);
     };
     
+    var $dataLayer = R.set();
+    this._layerSet.set('data', $dataLayer);
+    
+    var $textLayer = R.set();
+    this._layerSet.set('text', $textLayer);
+    
     // Retrieve the color. If it's a colorset, it needs to know how many
     // distinct colors to generate.
     var $color = opt.line.color;
@@ -69,10 +75,61 @@ Chart.Line = Class.create(Chart.Area, {
     
     // Create a set of invisible rectangles to serve as UI regions for the
     // grid columns.
-    var blanket = R.set();
+    var $uiLayer = R.set();
+    this._layerSet.set('ui', $uiLayer);
+    
+    // Create the column regions for the UI layer.
+    // REMEMBER that these columns are _centered_ on the gridlines, since
+    // that's where the dots are, so the first and last columns will be
+    // half their ordinary size.
+    var columnCBox, columnDBox, columnRect;
+    for (var i = 0; i < dataLength; i++) {
+      // Create an invisible, roughly-square box that will serve as the
+      // hover zone for this column.
+      columnCBox = {
+        x: (grid.xStepPixels * i) - (grid.xStepPixels / 2),
+        y: 0,
+        width:  grid.xStepPixels,
+        height: grid.height
+      };
+      
+      if (i === 0) {
+        columnCBox.x += (grid.xStepPixels / 2);
+      }
+      
+      if (i === 0 || i === (dataLength - 1)) {
+        columnCBox.width = grid.xStepPixels / 2;
+      }
+      
+      columnDBox = this._chartingBoxToDrawingBox(columnCBox);
+      columnRect = R.rect(
+        columnDBox.x,
+        columnDBox.y,
+        columnDBox.width,
+        columnDBox.height
+      ).attr({
+        stroke: '#000',
+        fill:   '#fff',
+        opacity: 0
+      });
+      
+      // Make the regions visible when we're debugging.
+      if (Krang.$debug) {
+        columnRect.attr({ opacity: 0.5 });
+      }
+      
+      $uiLayer.push(columnRect);
+      
+      Krang.Data.store(columnRect, { columnIndex: i });
+
+      this._createObservers(columnRect);      
+    }
     
     function plotDataset(dataset, index) {
       var data = dataset.toArray();
+      
+      // Create a layer for each dataset.
+      var datasetLayer = R.set();
       
       // Create the path objects for the line and the fill.
       // Fill color, if left unspecified, will be the same as the line
@@ -92,7 +149,9 @@ Chart.Line = Class.create(Chart.Area, {
         'stroke':          lineColor,
         'stroke-width':    opt.line.width,
         'stroke-linejoin': 'round'
-      });      
+      });
+      
+      datasetLayer.push(line);
       
       var fillColor = opt.fill.color || lineColor;
       if (opt.fill.color && opt.fill.color instanceof Krang.Colorset) {
@@ -105,6 +164,8 @@ Chart.Line = Class.create(Chart.Area, {
         stroke:  'none'
       });
       
+      datasetLayer.push(fill);
+      
       var origin = this._chartingPointToDrawingPoint({ x: 0, y: 0 });
       
       // Fill path starts at the graph origin.
@@ -113,11 +174,9 @@ Chart.Line = Class.create(Chart.Area, {
       var x = 0, labelPointerX = 1, label, value, y, dot, rect;
       
       // Plot the values.
-      var datum, chartingPoint, drawingPoint, columnCBox, columnDBox;
+      var datum, chartingPoint, drawingPoint, text;
       for (var i = 0, l = data.length; i < l; i++) {
         datum = data[i];
-        
-        console.log(g.left, grid.xStepPixels);
         
         chartingPoint = {
           x: grid.xStepPixels * i,
@@ -126,9 +185,6 @@ Chart.Line = Class.create(Chart.Area, {
 
         // Draw the line segment.
         drawingPoint = this._chartingPointToDrawingPoint(chartingPoint);
-        
-        console.log("chartingPoint: ", chartingPoint);
-        console.log("drawingPoint: ", drawingPoint);
         
         if (i == 0) {
           line.moveTo(drawingPoint.x, drawingPoint.y);
@@ -143,52 +199,25 @@ Chart.Line = Class.create(Chart.Area, {
           fill:   opt.dot.color || lineColor,
           stroke: opt.dot.stroke
         });
-
-        // Create an invisible, roughly-square box that will serve as the
-        // hover zone for this column.
-        columnCBox = {
-          x: grid.xStepPixels * i,
-          y: grid.height,
-          width: grid.xStepPixels,
-          height: grid.height
-        };
         
-        columnDBox = this._chartingBoxToDrawingBox(columnCBox);
-                
-        rect = R.rect(
-          columnDBox.x,
-          columnDBox.y,
-          columnDBox.width,
-          columnDBox.height
-        ).attr({
-          stroke: '#000',
-          fill:   '#fff',
-          opacity: 0
-        });
+        datasetLayer.push(dot);
         
         // Run all the labels through the specified filter.
         datum.label = opt.grid.labelX(datum.label);
-        
-        Krang.Data.store(rect, {
-          dot:  dot,
-          data: data[i]
-        });
-        
-        this._createObservers(rect, dot);
-        blanket.push(rect);
         
         // Only draw X-axis labels for the first set.
         if (index === 0) {
           // Skip drawing the label if the options call for it.
           if (labelPointerX++ % opt.grid.labelXFrequency === 0) {
-            xAxisLabelBox        = Object.clone(columnDBox);
+            var labelBoxHeight = window.parseInt(opt.text.font.size, 10);
+            xAxisLabelBox = this._chartingBoxToDrawingBox({
+              x: (grid.xStepPixels * i) - grid.xStepPixels / 2,
+              y: -5 - labelBoxHeight,
+              height: labelBoxHeight,
+              width: grid.xStepPixels
+            });
             
-            xAxisLabelBox.x     -= grid.xStepPixels / 2;
-            xAxisLabelBox.y      = g.top + grid.height + 5;
-            xAxisLabelBox.height = 'auto';
-            xAxisLabelBox.width  = grid.xStepPixels;          
-
-            new Krang.Text(datum.label, {
+            text = new Krang.Text(datum.label, {
               box: xAxisLabelBox,            
               align: 'center',
               font: {
@@ -197,64 +226,51 @@ Chart.Line = Class.create(Chart.Area, {
                 color:  opt.text.color
               }            
             }).draw(R);
+            $textLayer.push(text);
           }
-        } 
+        }
       } // for
-
+      
       // Now we've plotted all the points.
-      // Since the fill path is drawing a shape, not just a line, we need to
-      // close the path.
+      // Since the fill path is drawing a shape, not just a line, we need
+      // to close the path.
       fill.lineTo(origin.x, origin.y).andClose();
       
       // We want the fill to appear _behind_ the line, so that the bottom
       // half of the line isn't obscured.
       fill.insertBefore(line);
+      
+      $dataLayer.push(datasetLayer);
     }
     
-    this._datasets.each(plotDataset, this);
-    
-    // Draw Y labels.
     this._drawYAxisLabels(max);
     
-    this._frame.toFront();
-    blanket.toFront();
+    this._datasets.each(plotDataset, this);
+    var layerOrder = $w('ui text frame data grid background');
+    this._layerSet.setKeyOrder(layerOrder);
   },
   
-  _createObservers: function(rect, dot) {
-    var position = {
-      x: dot.attrs.cx,
-      y: dot.attrs.cy  
-    };
-    
+  _createObservers: function(node) {
     var canvas = this.canvas;
     
     var over = function() {
-      var dot = Krang.Data.retrieve(rect, 'dot'),
-         data = Krang.Data.retrieve(rect, 'data');
-         
-      Event.fire(canvas, 'krang:mouseover',
-       { dot: dot, data: data, position: position });
+      var meta = Krang.Data.getHash(node).toObject();
+      Event.fire(canvas, 'krang:mouseover', meta);
     };
     
     var out = function() {
-      var dot = Krang.Data.retrieve(rect, 'dot'),
-         data = Krang.Data.retrieve(rect, 'data');
-         
-      Event.fire(canvas, 'krang:mouseout',
-        { dot: dot, data: data, position: position });
+      var meta = Krang.Data.getHash(node).toObject();
+      Event.fire(canvas, 'krang:mouseout', meta);
     };
     
     var click = function() {
-      var dot = Krang.Data.retrieve(rect, 'dot'),
-         data = Krang.Data.retrieve(rect, 'data');
-         
-      Event.fire(canvas, 'krang:click',
-        { dot: dot, data: data, position: position });
+     var meta = Krang.Data.getHash(node).toObject();
+     Event.fire(canvas, 'krang:click', meta);
     };
     
-    rect.mouseover(over);
-    rect.mouseout(out);
-    rect.click(out);
+    node.mouseover(over);
+    node.mouseout(out);
+    node.click(out);
   }
 });
 

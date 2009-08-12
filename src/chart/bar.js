@@ -55,7 +55,7 @@ Chart.Bar = Class.create(Chart.Area, {
     
     var og = opt.grid;
     
-    this._drawGrid();    
+    this._drawGrid();
     var grid = this._getGridSpec();
         
     // So now we know how to get a Y coordinate from a raw dataset value. 
@@ -72,6 +72,12 @@ Chart.Bar = Class.create(Chart.Area, {
     // for a stacked bar chart.
     var $barTotals = [];
     
+    var $dataLayer = R.set();
+    this._layerSet.set('data', $dataLayer);
+    
+    var $textLayer = R.set();
+    this._layerSet.set('text', $textLayer);
+    
     var $color = opt.bar.color;
     if (opt.bar.color instanceof Krang.Colorset) {
       opt.bar.color.setLength(this._datasets.length);
@@ -82,7 +88,10 @@ Chart.Bar = Class.create(Chart.Area, {
       var data  = dataset.toArray();
       var color = $color.toString();
       
-      var datum, barBox;
+      // Create a layer for each dataset.
+      var datasetLayer = R.set();
+      
+      var datum, barBox, bar, text;
       for (var i = 0, l = data.length; i < l; i++) {
         datum = data[i];
                 
@@ -135,10 +144,12 @@ Chart.Bar = Class.create(Chart.Area, {
         var barDrawBox = this._chartingBoxToDrawingBox(barBox);
         
         // Draw the bar.
-        R.rect(
+        bar = R.rect(
           barDrawBox.x, barDrawBox.y, barDrawBox.width, barDrawBox.height
-        ).attr(attrs).attr({ gradient: gradient });
+        ).attr(attrs).attr({ gradient: gradient });        
+        datasetLayer.push(bar);
 
+        // Handle drawing the label above the bar, if there is one.
         var obl = opt.bar.label;
         
         // Figure out how tall the box will be based on the font size.
@@ -163,7 +174,7 @@ Chart.Bar = Class.create(Chart.Area, {
           barLabelBox.y -= barLabelPadding;
           barLabelBox.height = 'auto';
 
-          new Krang.Text(obl.filter(datum.value), {
+          text = new Krang.Text(obl.filter(datum.value), {
             box: barLabelBox,         
             align: 'center',
             font: {
@@ -172,6 +183,7 @@ Chart.Bar = Class.create(Chart.Area, {
               color:  obl.color
             }
           }).draw(R);
+          $textLayer.push(text);
         }
         
         // Only draw X-axis labels for the first set.
@@ -184,7 +196,7 @@ Chart.Bar = Class.create(Chart.Area, {
           // Run the label through the filter.
           var label = opt.grid.labelX(datum.label);    
           
-          new Krang.Text(label, {
+          text = new Krang.Text(label, {
             box: xAxisLabelBox,            
             align: 'center',            
             font: {
@@ -193,14 +205,18 @@ Chart.Bar = Class.create(Chart.Area, {
               color:  opt.text.color
             }            
           }).draw(R);
+          $textLayer.push(text);
         }
-      }
+      } // for
+      
+      $dataLayer.push(datasetLayer);
     }; // function plotDataset(dataset, index)
-    
     this._drawYAxisLabels(max);
     
-    this._datasets.each(plotDataset, this);    
-    this._frame.toFront();
+    this._datasets.each(plotDataset, this); 
+    var layerOrder = $w('text frame data grid background');
+    this._layerSet.setKeyOrder(layerOrder);
+    
   } // #draw
 }); // Chart.Bar
 
@@ -296,7 +312,7 @@ Object.extend(Chart.Bar, {
       labelX: Prototype.K,  
       labelY: function(value) {
         return value.toFixed(1);
-      }, 
+      },
       
       /* 
        * If set to 'auto', will determine a good max value based on the 

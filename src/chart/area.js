@@ -8,20 +8,22 @@ Chart.Area = Class.create(Chart.Base, {
   _drawGrid: function() {
     var opt = this.options, R = this.R, g = opt.gutter;        
     var og = opt.grid, v = og.vertical, h = og.horizontal;
-       
+    
     var gridSpec = this._getGridSpec();
     
     // Do a separate background fill before creating the grid.
-    R.rect(
+    var bg = R.rect(
       g.left,         // x
       g.top,          // y
       gridSpec.width, // width
       gridSpec.height // height
     ).attr({ fill: og.backgroundColor });
+    
+    this._layerSet.set('background', bg);
 
     // Now draw the grid. Thankfully, Raphael has a convenience method
     // for this.
-    R.drawGrid(
+    var grid = R.drawGrid(
       g.left,           // x
       g.top,            // y
       gridSpec.width,   // width
@@ -29,10 +31,12 @@ Chart.Area = Class.create(Chart.Base, {
       gridSpec.xSteps,  // columns
       gridSpec.ySteps,  // rows
       og.color          // color of gridlines
-    )
+    );
+    
+    this._layerSet.set('grid', grid);
     
     // Outer frame.
-    this._frame = R.rect(
+    var frame = R.rect(
       g.left,           // x
       g.top,            // y
       gridSpec.width,   // width
@@ -41,6 +45,8 @@ Chart.Area = Class.create(Chart.Base, {
       'stroke':       opt.border.color,
       'stroke-width': opt.border.width
     });
+    
+    this._layerSet.set('frame', frame);
   },
   
   _chartingPointToDrawingPoint: function(point) {
@@ -119,7 +125,8 @@ Chart.Area = Class.create(Chart.Base, {
   
   _drawYAxisLabels: function(max) {
     var grid = this._getGridSpec(), opt = this.options, g = opt.gutter;
-    var R = this.R;
+    var R = this.R, textLayer = this._layerSet.get('text');
+    
     // Draw Y-axis labels.
     var yAxisLabelValue, yAxisLabelText, yAxisLabelTextBox,
      yAxisLabelPixelHeight;    
@@ -128,7 +135,7 @@ Chart.Area = Class.create(Chart.Base, {
       return y / (grid.height / max);
     };
 
-    var labelPointerY = 1;
+    var labelPointerY = 1, text;
     // Draw one Y-axis label for each horizontal gridline.
     for (var j = 0; j <= grid.ySteps; j++) {
       // Skip drawing the label if the options call for it.
@@ -143,11 +150,11 @@ Chart.Area = Class.create(Chart.Base, {
         width:  g.left - 10,
         height: grid.yStepPixels,
         x:      5 - g.left,
-        y:      yAxisLabelPixelHeight - (grid.yStepPixels / 2),
+        y:      yAxisLabelPixelHeight - (grid.yStepPixels / 2)
       });
       
-      new Krang.Text(yAxisLabelText, {
-        box: yAxisLabelTextBox,        
+      text = new Krang.Text(yAxisLabelText, {
+        box: yAxisLabelTextBox,      
         align: 'right',        
         font: {
           family: opt.text.font.family,
@@ -155,6 +162,7 @@ Chart.Area = Class.create(Chart.Base, {
           color:  opt.text.color
         }
       }).draw(R);
+      textLayer.push(text);
     }
   }
 });
@@ -192,6 +200,13 @@ Object.extend(Chart.Area, {
       labelY: function(value) {
         return value.toFixed(1);
       }, 
+
+      /*
+       * How often to draw labels. If set to `3`, for instance, only every
+       * third label will be drawn.  
+       */
+      labelXFrequency: 1,
+      labelYFrequency: 1,
       
       /* 
        * If set to 'auto', will determine a good max value based on the 
