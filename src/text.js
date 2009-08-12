@@ -18,15 +18,15 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
   },
   
   clear: function() {
-    if (!this._text) return;
+    if (!this._set) return;
     
-    this._text.remove();
-    this._text = null;
+    this._set.remove();
+    this._set = null;
   },
   
   draw: function(context) {
     var R = context, opt = this.options,
-     attrs = opt.attributes, box = opt.box;
+     attrs = opt.attributes, box = opt.box, set = R.set();
      
     var hasBox = this._hasBox();
      
@@ -56,10 +56,11 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
     // When debugging, it's handy to see the usually-invisible boundaries
     // of the imaginary text boxes.
     if (Krang.$debug) {
-      R.rect(box.x, box.y, box.width, box.height).attr({
+      var frame = R.rect(box.x, box.y, box.width, box.height).attr({
         'stroke': '#ddd',
         'stroke-dasharray': '- '
       });
+      set.push(frame);
     }    
     
     // The text needs to fit inside this box, so we do some measuring and
@@ -83,8 +84,10 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
       y: box.y + newY
     });
     
-    this._text = text;    
-    return text;
+    set.push(text);
+    
+    this._set = set;
+    return set;
   }
 });
 
