@@ -4,43 +4,158 @@
  *  An abstract class containing common logic for line and bar charts.
 **/
 
-Chart.Area = Class.create(Chart.Base, {  
+Chart.Area = Class.create(Chart.Base, {
   _drawGrid: function() {
     var opt = this.options, R = this.R, g = opt.gutter;        
     var og = opt.grid, v = og.vertical, h = og.horizontal;
        
-    var columns = v.enabled ? v.lines : 0;
-    var rows    = h.enabled ? h.lines : 0;
+    var gridSpec = this._getGridSpec();
     
     // Do a separate background fill before creating the grid.
     R.rect(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top + g.bottom)
-    ).attr({ fill: og.backgroundColor });    
-    
-    // Background grid.
+      g.left,         // x
+      g.top,          // y
+      gridSpec.width, // width
+      gridSpec.height // height
+    ).attr({ fill: og.backgroundColor });
+
+    // Now draw the grid. Thankfully, Raphael has a convenience method
+    // for this.
     R.drawGrid(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top  + g.bottom),
-      columns,
-      rows,
-      og.color
-    );
+      g.left,           // x
+      g.top,            // y
+      gridSpec.width,   // width
+      gridSpec.height,  // height
+      gridSpec.xSteps,  // columns
+      gridSpec.ySteps,  // rows
+      og.color          // color of gridlines
+    )
     
     // Outer frame.
     this._frame = R.rect(
-      g.left,
-      g.top,
-      opt.width  - (g.left + g.right),
-      opt.height - (g.top  + g.bottom)
+      g.left,           // x
+      g.top,            // y
+      gridSpec.width,   // width
+      gridSpec.height   // height
     ).attr({
       'stroke':       opt.border.color,
       'stroke-width': opt.border.width
+    });
+  },
+  
+  _chartingPointToDrawingPoint: function(point) {
+    var drawPoint = Object.clone(point);
+    var opt = this.options, g = opt.gutter;
+    
+    // X is easy. Just add the left gutter.
+    drawPoint.x += g.left;
+    
+    // Y is harder because we have to invert the scale.
+    var gridHeight = opt.height - (g.top + g.bottom);
+    
+    // Invert...
+    drawPoint.y = gridHeight - point.y;
+    
+    // ...then factor in the top gutter.
+    drawPoint.y += g.top;
+    
+    return drawPoint;
+  },
+
+  // Converts charting coordinates (with origin at bottom-left of graph)
+  // to drawing coordinates (with origin at top-left of canvas).
+  _chartingBoxToDrawingBox: function(box) {
+    var drawBox = Object.clone(box);
+    var opt = this.options, g = opt.gutter;
+    
+    // X is easy. Just add the left gutter.
+    drawBox.x += g.left;
+    
+    // Y is harder because we have to invert the scale.
+    var gridHeight = opt.height - (g.top + g.bottom);
+    
+    // Invert...
+    drawBox.y = gridHeight - box.y;
+    
+    // ...then factor in the top gutter.
+    drawBox.y += g.top;
+
+    // Rectangles still start at top-left.
+    drawBox.y -= box.height;
+    
+    return drawBox;
+  },
+  
+  _getGridSpec: function(options) {
+    if (this._gridSpec) return this._gridSpec;
+    
+    var opt = this.options, R = this.R, g = opt.gutter;        
+    var og = opt.grid, v = og.vertical, h = og.horizontal;
+       
+    this._gridSpec = {
+      // A graph has as many X steps as it has unique data points
+      // (for the independent variable). But Y steps are somewhat
+      // arbitrary.
+      xSteps:  this._datasets.first().dataLength(),
+      ySteps:  og.horizontal.enabled ? og.horizontal.lines : 0,
+    
+      // The pixel dimensions of the grid. This is the size of the graph's
+      // plottable area.
+      width:   opt.width  - (g.left + g.right ),
+      height:  opt.height - (g.top  + g.bottom)
+    };
+    
+    // Any of the values above can be overridden with the `options` argument.
+    Object.extend(this._gridSpec, options);
+
+    // Each X- and Y-step will, therefore, be a fixed size.
+    Object.extend(this._gridSpec, {
+      xStepPixels: this._gridSpec.width  / this._gridSpec.xSteps,
+      yStepPixels: this._gridSpec.height / this._gridSpec.ySteps
     });    
+    
+    return this._gridSpec;
+  },
+  
+  _drawYAxisLabels: function(max) {
+    var grid = this._getGridSpec(), opt = this.options, g = opt.gutter;
+    var R = this.R;
+    // Draw Y-axis labels.
+    var yAxisLabelValue, yAxisLabelText, yAxisLabelTextBox,
+     yAxisLabelPixelHeight;    
+    
+    var $yToValue = function(y) {
+      return y / (grid.height / max);
+    };
+
+    var labelPointerY = 1;
+    // Draw one Y-axis label for each horizontal gridline.
+    for (var j = 0; j <= grid.ySteps; j++) {
+      // Skip drawing the label if the options call for it.
+      if (labelPointerY++ % opt.grid.labelYFrequency !== 0)
+        continue;
+      
+      yAxisLabelPixelHeight = grid.yStepPixels * j;      
+      yAxisLabelValue       = $yToValue(yAxisLabelPixelHeight);
+      yAxisLabelText        = opt.grid.labelY(yAxisLabelValue);      
+      
+      yAxisLabelTextBox = this._chartingBoxToDrawingBox({
+        width:  g.left - 10,
+        height: grid.yStepPixels,
+        x:      5 - g.left,
+        y:      yAxisLabelPixelHeight - (grid.yStepPixels / 2),
+      });
+      
+      new Krang.Text(yAxisLabelText, {
+        box: yAxisLabelTextBox,        
+        align: 'right',        
+        font: {
+          family: opt.text.font.family,
+          size:   opt.text.font.size,
+          color:  opt.text.color
+        }
+      }).draw(R);
+    }
   }
 });
 
