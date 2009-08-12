@@ -24,44 +24,57 @@ Chart.Line = Class.create(Chart.Area, {
       throw new Krang.Error("No dataset!");
     }
     
-    var opt = this.options, R = this.R, g = opt.gutter, max;
+    var opt = this.options, R = this.R, g = opt.gutter;
+
+    // If `maxY` is `auto`, look at the dataset(s) to determine a 
+    // reasonable maximum for the chart.
     if (opt.grid.maxY === 'auto') {
+      // The largest value in any single dataset will serve as the maximum.
       max = Math.max.apply(Math, this._datasets.invoke('maxValue'));
     } else {
+      // If the user hard-codes a maximum.
       max = opt.grid.maxY;
     }
-    
+
     var dataLength = this._datasets.first().dataLength();
     if (dataLength <= 1) {
       // Not enough for a line chart.
       throw new Krang.Error("Not enough data points!")
     }
-    
-    // Horizontal space between each node.
-    var xScale = (opt.width - (g.left + g.right)) /
-     (this._datasets.first().dataLength() - 1);
-     
-    // Vertical scale 
-    var yRange = opt.height - (g.top + g.bottom);
-    var yScale = yRange / max;
-    
-    var columns = opt.grid.vertical.enabled   ? opt.grid.vertical.lines   : 0;
-    var rows    = opt.grid.horizontal.enabled ? opt.grid.horizontal.lines : 0;
-        
+
+    // We want the grid to be one column _shorter_ than usual because the
+    // data points should intersect the vertical gridlines.
+    // 
+    // This means, though, that later on we'll have to create by hand the
+    // invisible columns that correspond to data points.
+    var grid = this._getGridSpec({ xSteps: dataLength - 1 });
     this._drawGrid();
     
+    // So now we know how to get a Y coordinate from a raw dataset value. 
+    var $valueToY = function(value) {
+      return value * (grid.height / max);
+    };
+    
+    // And how to get the dataset value of an arbitrary Y coordinate.
+    var $yToValue = function(y) {
+      return y / (grid.height / max);
+    };
+    
+    // Retrieve the color. If it's a colorset, it needs to know how many
+    // distinct colors to generate.
     var $color = opt.line.color;
     if ($color instanceof Krang.Colorset) {
       $color.setLength(this._datasets.length);
     }
     
+    // Create a set of invisible rectangles to serve as UI regions for the
+    // grid columns.
     var blanket = R.set();
     
     function plotDataset(dataset, index) {
       var data = dataset.toArray();
       
       // Create the path objects for the line and the fill.
-
       // Fill color, if left unspecified, will be the same as the line
       // color (with lower opacity).
       var fillColor = opt.fill.color || opt.line.color;
@@ -91,48 +104,69 @@ Chart.Line = Class.create(Chart.Area, {
         opacity: opt.fill.opacity,
         stroke:  'none'
       });
-
-      fill.moveTo(g.left, opt.height - g.bottom);
       
+      var origin = this._chartingPointToDrawingPoint({ x: 0, y: 0 });
+      
+      // Fill path starts at the graph origin.
+      fill.moveTo(origin.x, origin.y);
+
       var x = 0, labelPointerX = 1, label, value, y, dot, rect;
       
       // Plot the values.
+      var datum, chartingPoint, drawingPoint, columnCBox, columnDBox;
       for (var i = 0, l = data.length; i < l; i++) {
-        label = data[i].label; value = data[i].value;
-
-        y = Math.round(opt.height - g.bottom - (yScale * value));
-        x = Math.round(g.left + (xScale * i));
+        datum = data[i];
+        
+        console.log(g.left, grid.xStepPixels);
+        
+        chartingPoint = {
+          x: grid.xStepPixels * i,
+          y: $valueToY(datum.value)
+        };
 
         // Draw the line segment.
+        drawingPoint = this._chartingPointToDrawingPoint(chartingPoint);
+        
+        console.log("chartingPoint: ", chartingPoint);
+        console.log("drawingPoint: ", drawingPoint);
+        
         if (i == 0) {
-          line.moveTo(x, y, 10);
-          fill.lineTo(x, y, 10);
+          line.moveTo(drawingPoint.x, drawingPoint.y);
+          fill.lineTo(drawingPoint.x, drawingPoint.y);
         } else {
-          line.cplineTo(x, y, opt.line.curve);
-          fill.cplineTo(x, y, opt.line.curve);
+          line.cplineTo(drawingPoint.x, drawingPoint.y, opt.line.curve);
+          fill.cplineTo(drawingPoint.x, drawingPoint.y, opt.line.curve);
         }
-
+        
         // Draw the dot.
-        dot = R.circle(x, y, opt.dot.radius).attr({ 
+        dot = R.circle(drawingPoint.x, drawingPoint.y, opt.dot.radius).attr({
           fill:   opt.dot.color || lineColor,
           stroke: opt.dot.stroke
         });
 
         // Create an invisible, roughly-square box that will serve as the
-        // hover zone for this point.
+        // hover zone for this column.
+        columnCBox = {
+          x: grid.xStepPixels * i,
+          y: grid.height,
+          width: grid.xStepPixels,
+          height: grid.height
+        };
+        
+        columnDBox = this._chartingBoxToDrawingBox(columnCBox);
+                
         rect = R.rect(
-          g.left + (xScale * i) - (xScale / 16), /* x      */
-          y - (xScale / 16),                     /* y      */
-          xScale / 8,                            /* width  */
-          xScale / 8                             /* height */
+          columnDBox.x,
+          columnDBox.y,
+          columnDBox.width,
+          columnDBox.height
         ).attr({
-          stroke:  '#000',
-          fill:    '#fff',
+          stroke: '#000',
+          fill:   '#fff',
           opacity: 0
         });
         
         // Run all the labels through the specified filter.
-        var datum = data[i];
         datum.label = opt.grid.labelX(datum.label);
         
         Krang.Data.store(rect, {
@@ -141,28 +175,36 @@ Chart.Line = Class.create(Chart.Area, {
         });
         
         this._createObservers(rect, dot);
-
         blanket.push(rect);
         
-        // Draw X labels.
-        if (!index) {
+        // Only draw X-axis labels for the first set.
+        if (index === 0) {
           // Skip drawing the label if the options call for it.
-          if (labelPointerX++ % opt.grid.labelXFrequency !== 0)
-            continue;
-          
-          var textStartY = g.top + yRange + Math.round(g.bottom / 2);          
-          label = opt.grid.labelX(label);
-          var text = R.text(x, textStartY, label).attr({
-            font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
-            stroke: 'none',
-            fill: opt.text.color
-          });
-        }        
-      }
+          if (labelPointerX++ % opt.grid.labelXFrequency === 0) {
+            xAxisLabelBox        = Object.clone(columnDBox);
+            
+            xAxisLabelBox.x     -= grid.xStepPixels / 2;
+            xAxisLabelBox.y      = g.top + grid.height + 5;
+            xAxisLabelBox.height = 'auto';
+            xAxisLabelBox.width  = grid.xStepPixels;          
 
+            new Krang.Text(datum.label, {
+              box: xAxisLabelBox,            
+              align: 'center',
+              font: {
+                family: opt.text.font.family,
+                size:   opt.text.font.size,
+                color:  opt.text.color
+              }            
+            }).draw(R);
+          }
+        } 
+      } // for
+
+      // Now we've plotted all the points.
       // Since the fill path is drawing a shape, not just a line, we need to
       // close the path.
-      fill.lineTo(x, opt.height - g.bottom).andClose();
+      fill.lineTo(origin.x, origin.y).andClose();
       
       // We want the fill to appear _behind_ the line, so that the bottom
       // half of the line isn't obscured.
@@ -171,31 +213,8 @@ Chart.Line = Class.create(Chart.Area, {
     
     this._datasets.each(plotDataset, this);
     
-    // Draw Y labels.    
-    var yStart = g.bottom, yEnd = opt.height - g.top, labelPointerY = 1;
-    
-    var value, yLabel, yPlot, text;
-    for (var j = 0, yLabel; j <= rows; j++) {
-      value  = (j / rows) * max;
-      yLabel = opt.grid.labelY(value);
-      yPlot  = yStart + ((j * yRange) / rows);
-      
-      // Skip drawing the label if the options call for it.
-      if (labelPointerY++ % opt.grid.labelYFrequency !== 0)
-        continue;
-      
-      text = R.text(Math.round(g.left / 2), (opt.height - yPlot), yLabel).attr({
-        font: '#{0} "#{1}"'.interpolate([opt.text.fontSize, opt.text.fontFamily]),
-        stroke: 'none',
-        fill: opt.text.color          
-      });
-      
-      // Fake right-alignment.
-      var textWidth = text.getBBox().width;
-      var textX = g.left - 15 - textWidth;
-      
-      text.attr({ x: textX, 'text-anchor': 'start' });
-    }
+    // Draw Y labels.
+    this._drawYAxisLabels(max);
     
     this._frame.toFront();
     blanket.toFront();
@@ -311,8 +330,10 @@ Object.extend(Chart.Line, {
     },
     
     text: {
-      fontFamily: 'Lucida Grande',
-      fontSize:   '12px',
+      font: {
+        family: 'Lucida Grande',
+        size:   '12px'
+      },
       color:      "#000"
     }
   }
