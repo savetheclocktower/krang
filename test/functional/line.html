@@ -13,6 +13,8 @@
 	
 	<script type="text/javascript">
 	
+	  Krang.$debug = true;
+	
 	  Event.observe(window, 'load', function() {
   	  var dataset = new Dataset.Array([
   	    ['1',  52],
@@ -49,8 +51,8 @@
 
 
   	  var line = new Chart.Line('chart', {
-  	    fill: { opacity: 0.5 },
-  	    dot:  { radius:  4, stroke: "none" },
+  	    fill: { opacity: 0 },
+  	    dot:  { radius: 4, stroke: "none" },
   	    line: { width: 4,  curve: 20 },
   	    width: 800,
   	    height: 250,
@@ -59,11 +61,14 @@
   	      bottom: 40
   	    }
   	  });
+  	  
+  	  window.line = line;
 
   	  line.addDataset(dataset, dataset2, dataset3).draw();
   	  
   	  document.observe('krang:mouseover', function(event) {
-  	    console.log("dot:", event.memo.dot, "data:", event.memo.data);
+  	    window.memo = event.memo;
+  	    console.log("mouseover on column ", memo.columnIndex);
   	  });
 	  });
 	

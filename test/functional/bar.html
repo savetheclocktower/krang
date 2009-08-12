@@ -12,6 +12,8 @@
 	<title>Krang tests: Bar chart</title>
 	
 	<script type="text/javascript">
+	
+    //Krang.$debug = true;
 
 	  Event.observe(window, 'load', function() {
   	  var dataset = new Dataset.Array([
@@ -42,14 +44,22 @@
   	  });  	  
 
   	  var bar = new Chart.Bar('chart', {
-  	    bar:  { gutter: 20, border: { width: 1, color: 'auto' } },
+  	    bar:  {
+  	      gutter: 20,
+  	      border: { width: 1, color: 'auto' },
+  	      label: { enabled: true }
+  	    },
   	    grid: {
   	      labelY: function(value) {
   	        return "$" + value.toFixed(2);
   	      }
   	    },
   	    
-  	    stack: false
+  	    text: {
+  	      color: '#666'
+  	    },
+  	    
+  	    stack: $('toggle').checked
   	  });
 
   	  bar.addDataset(dataset, dataset2, dataset3).draw();
