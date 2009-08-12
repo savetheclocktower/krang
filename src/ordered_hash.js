@@ -1,0 +1,81 @@
+/**
+ *  class Krang.OrderedHash < Hash
+**/
+Krang.OrderedHash = Class.create(Hash, {
+  /**
+   *  new Krang.OrderedHash(object)
+  **/
+  initialize: function($super, object) {
+    $super(object);    
+    this._keys = [];
+    for (var key in this._object) {
+      this._keys.push(key);
+    }
+  },
+  
+  set: function($super, key, value) {
+    if (!this._keys.include(key))
+      this._keys.push(key);
+    return $super(key, value);
+  },
+  
+  unset: function($super, key) {
+    this._keys = this._keys.without(key);
+    return $super(key);    
+  },
+  
+  keys: function() {
+    return this._keys;
+  },
+  
+  toObject: function() {
+    return this.inject({}, function(obj, pair) {
+      obj[pair.key] = pair.value;
+    });
+  },
+  
+  // By redefining `_each`, we make it so that all `Enumerable` methods run
+  // in an ordered fashion.
+  _each: function(iterator) {
+    for (var i = 0, key; key = this._keys[i]; i++) {
+      var value = this._object[key], pair = [key, value];
+      pair.key = key; pair.value = value;
+      iterator(pair);
+    }
+  },
+  
+  inspect: function() {
+    return '#<Krang.OrderedHash:{' + this.map(function(pair) {
+      return pair.map(Object.inspect).join(': ');
+    }).join(', ') + '}>';
+  },
+  
+  /**
+   *  Krang.OrderedHash#setKeyOrder(keys) -> undefined
+  **/
+  setKeyOrder: function(keys) {
+    // Ensure same number of keys.
+    if (keys.length !== this._keys.length) {
+      throw new Krang.Error("Key length mismatch.");
+    }
+    
+    // Ensure all key names match up.
+    for (var i = 0, key; key = this._keys[i]; i++) {
+      if (!keys.include(key)) {
+        throw new Krang.Error("Key mismatch.");
+      }
+    }
+    
+    this._keys = keys;
+  },
+  
+  insertBeforeKey: function(key, beforeKey) {
+    if (!this._keys.include(key) || !this._keys.include(beforeKey)) {
+      throw new Krang.Error("One of those keys doesn't exist in this " +
+       "hash. Add to the hash first, then rearrange keys.");
+    }    
+
+    this._keys.splice(this._keys.indexOf(key), 1);
+    this._keys.splice(this._keys.indexOf(beforeKey), 0, key);
+  }
+});
