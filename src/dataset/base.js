@@ -1,5 +1,3 @@
-var Dataset = {};
-
 /**
  *  class Dataset.Base
 **/
@@ -8,7 +6,8 @@ Dataset.Base = Class.create({
   /**
    *  new Dataset.Base(labels, values)
   **/
-  initialize: function(labels, values) {
+  initialize: function(name, labels, values) {
+    this.name   = name;
     this.labels = labels || [];
     this.values = values || [];
   },
@@ -47,5 +46,5 @@ Dataset.Base = Class.create({
     this.values = this.values.reverse();
     
     return this;
-  }  
+  }
 });

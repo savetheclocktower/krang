@@ -5,8 +5,8 @@ Dataset.Array = Class.create(Dataset.Base, {
   /**
    *  new Dataset.Array(array)
   **/
-  initialize: function($super, array) {
-    $super();
+  initialize: function($super, name, array) {
+    $super(name);
     
     array.each( function(pair) {
       this.labels.push(pair[0]);

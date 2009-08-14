@@ -7,7 +7,8 @@ Dataset.Table = Class.create(Dataset.Base, Krang.Mixin.Configurable, {
   /**
    *  new Dataset.Table(element, options)
   **/
-  initialize: function(element, options) {
+  initialize: function($super, name, element, options) {
+    $super(name);
     this.element = $(element);
     this.setOptions(options);
     var opt = this.options;
@@ -35,7 +36,7 @@ Object.extend(Dataset.Table, {
       return text.strip();
     },
     valueFilter: function(text) {
-      return Number(text);
+      return Number(text.strip());
     }
   }
 });
