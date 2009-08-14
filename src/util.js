@@ -53,8 +53,13 @@
       return value;
     },
     
-    getHash: function(node) {
+    getStorage: function(node) {
       return _getHash(node);
     }
   };
+  
+  // Extend these methods onto Raphael elements.
+  for (var methodName in Krang.Data) {
+    Raphael.el[methodName] = Krang.Data[methodName].methodize();
+  }
 })();
