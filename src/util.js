@@ -63,3 +63,10 @@
     Raphael.el[methodName] = Krang.Data[methodName].methodize();
   }
 })();
+
+// Redefine Raphael's `remove` function so that it doesn't cause
+// spurious errors in Safari.
+Raphael.el.remove = function() {
+  var parentNode = this.node.parentNode;
+  if (parentNode) parentNode.removeChild(this.node);
+};
