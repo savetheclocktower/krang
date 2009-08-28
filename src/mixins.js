@@ -5,30 +5,20 @@
  *  
  *  Used within Krang to blend user-set options with the defaults.
 **/
+
 Krang.deepExtend = function(destination, source) {
   for (var property in source) {
-    var type = typeof source[property], deep = true;
-    
-    if (source[property] === null || type !== 'object')
-      deep = false;
-      
-    if (Object.isElement(source[property]))
-      deep = false;
-      
     if (source[property] && source[property].constructor &&
-     source[property].constructor !== Object) {
-      deep = false;
-    } 
-        
-    if (deep) {
+     source[property].constructor === Object) {
       destination[property] = destination[property] || {};
       arguments.callee(destination[property], source[property]);
     } else {
       destination[property] = source[property];
-    }    
+    }
   }
   return destination;
 };
+
 
 /**
  *  Krang.Mixin
