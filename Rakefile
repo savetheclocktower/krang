@@ -52,6 +52,7 @@ end
 
 desc "Generates the distributable krang.js file."
 task :dist do
+  FileUtils.mkdir_p(KRANG_DIST_DIR) unless File.exists?(KRANG_DIST_DIR)
   sprocketize('src', 'krang.js')
 end
 
