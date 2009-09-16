@@ -48,6 +48,8 @@ Chart.Pie = Class.create(Chart.Base, {
     
     var opt = this.options, R = this.R, d = this._datasets.first();
     
+    var $dataLayer = R.set();
+    this._layerSet.set('data', $dataLayer);
     function sector(cx, cy, r, startAngle, endAngle, params) {
       var x1 = cx + r * Math.cos(-startAngle * Math.RAD),
           x2 = cx + r * Math.cos(-endAngle   * Math.RAD),
@@ -66,11 +68,14 @@ Chart.Pie = Class.create(Chart.Base, {
       
       var isLarge = ((endAngle - startAngle) > 180);
           
-      return R.path(params)
+      var wedge = R.path(params)
         .moveTo(cx, cy)
         .lineTo(x1, y1)
         .arcTo(r, r, (isLarge ? 1 : 0), 0, x2, y2)
         .lineTo(cx, cy);
+        
+      $dataLayer.push(wedge);
+      return wedge;
     }
     
     var angle = 0, total = 0;
@@ -95,8 +100,6 @@ Chart.Pie = Class.create(Chart.Base, {
       var gradient = Object.clone(opt.wedge.gradient);
       
       gradient.dots = opt.wedge.gradient.dots(colorObj);
-      
-      //console.log(colorObj.lighterBy(0.25).toHexString());
       
       wedge = sector(
         this._center.x,
@@ -139,6 +142,9 @@ Chart.Pie = Class.create(Chart.Base, {
       
       angle += wedgeSize;
     }    
+
+    
+    this._drawn = true;
   }   
 });
 
@@ -150,10 +156,10 @@ Object.extend(Chart.Pie, {
     wedge: {
       stroke: '#000',
       color:  new Krang.Colorset({
-        vary: 'l',
+        vary: 'h',
         hue: 0.2,
-        saturation: 0.6,
-        lightness: 0.7
+        saturation: 0.9,
+        lightness: 0.4
       }),
       
       gradient: {
@@ -171,6 +177,6 @@ Object.extend(Chart.Pie, {
     animation: {
       distance: 15,
       duration: 0.2
-    }    
+    }
   }
 });

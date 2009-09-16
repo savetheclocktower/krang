@@ -89,8 +89,10 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   },
   
   setActiveDataset: function(dataset, shouldAnimate) {
-    shouldAnimate = shouldAnimate || false;
+    shouldAnimate = shouldAnimate || true;
     
+    // Figure out which dataset is meant. It can be referenced by index or by
+    // name — or it could be the actual dataset.
     if (Object.isNumber(dataset)) {
       dataset = this._datasets[dataset];
     }
@@ -111,20 +113,6 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   
   getActiveDataset: function() {
     return this._activeDataset || this._datasets.first();
-  },
-  
-  getSpecForDataset: function(dataset) {
-    if (Object.isNumber(dataset)) {
-      // Refers to index of dataset.
-      dataset = this._datasets[dataset];
-    }
-    
-    if (!dataset || !dataset._uid ||
-     !this._datasets.pluck('_uid').include(dataset._uid)) {
-      throw new Krang.Error("Dataset doesn't exist in chart.");
-    }
-    
-    return this._dataSpecs[dataset._uid];
   },
   
   _animateDataset: function(dataset) {

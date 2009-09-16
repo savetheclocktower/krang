@@ -142,11 +142,7 @@ Chart.Line = Class.create(Chart.Area, {
     
     // Create the path objects for the line and the fill.
     if (!line) {
-      line = R.path({
-        'stroke':          lineColor,
-        'stroke-width':    opt.line.width,
-        'stroke-linejoin': 'round'
-      });
+      line = R.path("");
       if (isSingle) {
         shapes.line = line;
       }
@@ -156,11 +152,7 @@ Chart.Line = Class.create(Chart.Area, {
     if (!alreadyDrawn) datasetLayer.push(line);
 
     if (!fill) {
-      fill = R.path({
-        fill:    fillColor,
-        opacity: opt.fill.opacity,
-        stroke:  'none'
-      });
+      fill = R.path("");
       if (isSingle) {
         shapes.fill = fill;
       }
@@ -265,8 +257,18 @@ Chart.Line = Class.create(Chart.Area, {
     } else {
       // Now we've built path strings for both the fill and the line. Apply
       // them to the Raphael shapes.
-      line.attr({ path: linePath.toString() });
-      fill.attr({ path: fillPath.toString() });
+      line.attr({
+        path: linePath.toString(),
+        'stroke':          lineColor,
+        'stroke-width':    opt.line.width,
+        'stroke-linejoin': 'round'
+      });
+      fill.attr({
+        path: fillPath.toString(),
+        fill:    fillColor,
+        opacity: opt.fill.opacity,
+        stroke:  'none'
+      });
           
       // We want the fill to appear _behind_ the line, so that the bottom
       // half of the line isn't obscured.
