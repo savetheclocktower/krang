@@ -21,7 +21,7 @@ Krang.OrderedHash = Class.create(Hash, {
   
   unset: function($super, key) {
     this._keys = this._keys.without(key);
-    return $super(key);    
+    return $super(key);
   },
   
   keys: function() {
@@ -69,7 +69,12 @@ Krang.OrderedHash = Class.create(Hash, {
     this._keys = keys;
   },
   
-  insertBeforeKey: function(key, beforeKey) {
+  /**
+   *  Krang.OrderedHash#insertBefore(key, beforeKey) -> undefined
+   *  
+   *  Inserts the key _before_ the specified key.
+  **/
+  insertBefore: function(key, beforeKey) {
     if (!this._keys.include(key) || !this._keys.include(beforeKey)) {
       throw new Krang.Error("One of those keys doesn't exist in this " +
        "hash. Add to the hash first, then rearrange keys.");
@@ -77,5 +82,38 @@ Krang.OrderedHash = Class.create(Hash, {
 
     this._keys.splice(this._keys.indexOf(key), 1);
     this._keys.splice(this._keys.indexOf(beforeKey), 0, key);
+  },
+  
+  /**
+   *  Krang.OrderedHash#insertBefore(key, beforeKey) -> undefined
+   *  
+   *  Inserts the key _after_ the specified key.
+  **/
+  insertAfter: function(key, afterKey) {
+    if (!this._keys.include(key) || !this._keys.include(afterKey)) {
+      throw new Krang.Error("One of those keys doesn't exist in this " +
+       "hash. Add to the hash first, then rearrange keys.");
+    }
+    
+    this._keys.splice(this._keys.indexOf(key), 1);
+    this._keys.splice(this._keys.indexOf(afterKey), 1, afterKey, key);
+  },
+
+  /**
+   *  Krang.OrderedHash#moveToFirst(key) -> undefined
+   *  
+   *  Makes the key first in the key order.
+  **/  
+  moveToFirst: function(key) {
+    this.insertBefore(key, this._keys.first());
+  },
+
+  /**
+   *  Krang.OrderedHash#moveToLast(key) -> undefined
+   *  
+   *  Makes the key last in the key order.
+  **/  
+  moveToLast: function(key) {
+    this.insertBefore(key, this._keys.last());
   }
 });
