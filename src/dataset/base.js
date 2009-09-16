@@ -10,6 +10,7 @@ Dataset.Base = Class.create({
     this.name   = name;
     this.labels = labels || [];
     this.values = values || [];
+    Dataset.identify(this);
   },
   
   /**

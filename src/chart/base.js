@@ -10,7 +10,16 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
   initialize: function(canvas) {
     this.canvas = $(canvas);
     this._datasets = [];
-    this._layerSet = new Krang.LayerSet();
+    
+    // For keeping track of the active dataset.
+    this._activeDataset = null;
+    
+    // For holding all the different shape layers of the chart.
+    this._layerSet = new Krang.LayerSet();    
+    this._drawn = false;
+    
+    // For associating datasets with colors on a graph.
+    this._colors = {};
   },
   
   /**
@@ -59,6 +68,79 @@ Chart.Base = Class.create(Krang.Mixin.Configurable, {
       var keys = this._layerSet.keys();
       keys.each( function(k) { this._layerSet.unset(k) }, this);
     }
+  },
+  
+  showLayer: function(key) {
+    var layer = this._layerSet.get(key);
+    if (!layer) {
+      throw new Krang.Error("No such layer!");
+    }
+    
+    layer.show();
+  },
+  
+  hideLayer: function(key) {
+    var layer = this._layerSet.get(key);
+    if (!layer) {
+      throw new Krang.Error("No such layer!");
+    }
+    
+    layer.hide();
+  },
+  
+  setActiveDataset: function(dataset, shouldAnimate) {
+    shouldAnimate = shouldAnimate || false;
+    
+    if (Object.isNumber(dataset)) {
+      dataset = this._datasets[dataset];
+    }
+    
+    if (Object.isString(dataset)) {
+      dataset = this._datasets.detect( function(d) {
+        return d.name === dataset;
+      });
+    }
+    
+    if (shouldAnimate) {
+      this._animateDataset(dataset);
+    } else {
+      this._activeDataset = dataset;
+      this.draw();
+    }
+  },
+  
+  getActiveDataset: function() {
+    return this._activeDataset || this._datasets.first();
+  },
+  
+  getSpecForDataset: function(dataset) {
+    if (Object.isNumber(dataset)) {
+      // Refers to index of dataset.
+      dataset = this._datasets[dataset];
+    }
+    
+    if (!dataset || !dataset._uid ||
+     !this._datasets.pluck('_uid').include(dataset._uid)) {
+      throw new Krang.Error("Dataset doesn't exist in chart.");
+    }
+    
+    return this._dataSpecs[dataset._uid];
+  },
+  
+  _animateDataset: function(dataset) {
+    throw "Implement in subclass.";
   }
 });
 
+Object.extend(Chart.Base, {
+  DEFAULT_OPTIONS: {
+    data: {
+      mode: 'single'
+    },
+    
+    animate: {
+      duration: 0.5,
+      easing:   'linear'
+    }
+  }
+});

@@ -8,6 +8,20 @@
 	<script src="../../lib/prototype.js" type="text/javascript"></script>
 	<script src="../../lib/raphael.js"   type="text/javascript"></script>
 	<script src="../../dist/krang.js"    type="text/javascript"></script>
+	
+	<style type="text/css" media="screen">
+	 #datasets ul {
+	   list-style-type: none;
+	   margin: 0;
+	   padding: 0;	   
+	 }
+	 
+	  #datasets li {
+	    list-style-type: none;
+	    float: left;
+	    width: 100px;
+	  }
+	</style>
 
 	<title>Krang tests: Bar chart</title>
 	
@@ -38,7 +52,7 @@
   	    ['August',    9]
   	  ]);
   	  
-  	  var dataset3 = new Dataset.Table('dataset', {
+  	  var dataset3 = new Dataset.Table("Product Gamma", 'dataset', {
   	    labels: 'tbody td:first-child',
   	    values: 'tbody td:last-child'
   	  });  	  
@@ -64,9 +78,20 @@
 
   	  bar.addDataset(dataset, dataset2, dataset3).draw();
   	  
+  	  window.bar = bar;
+  	  
   	  $('toggle').observe('click', function(event) {
   	    (function() {
-    	    bar.options.stack = event.element().checked;
+  	      var isChecked = event.element().checked;
+  	      
+  	      Form[isChecked ? 'disable' : 'enable']($('datasets'));
+  	      
+  	      bar.setOptions({
+  	        data: { mode: isChecked ? 'multiple' : 'single' },
+  	        stack: isChecked
+  	      });
+          //          
+          // bar.options.stack = event.element().checked;
     	    bar.draw();  	      
   	    }).defer();
   	  })
@@ -137,6 +162,50 @@
   <label>
     <input type="checkbox" id="toggle" /> Stack bars
   </label>
+  
+  <form id="datasets">
+    <fieldset>
+      <legend>Dataset</legend>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="dataset" value="Product Alpha"
+             checked="checked" /> Alpha            
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="dataset" value="Product Beta"/> Beta            
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="dataset" value="Product Gamma" /> Gamma            
+          </label>
+        </li>
+      </ul>
+    </fieldset>
+  </form>
+  
+  <script type="text/javascript">
+    (function() {
+      window.CURRENT_DATASET = getCurrentDataset();
+      function getCurrentDataset() {
+        var hash = $('datasets').serialize().toQueryParams();
+        return hash.dataset;
+      }
+      
+      new Form.Observer('datasets', 0.2, function(form, value) {
+        if (value === "") return;
+        var dataset = getCurrentDataset();
+        if (window.CURRENT_DATASET !== dataset) {
+          window.CURRENT_DATASET = dataset;
+          window.bar.setActiveDataset(getCurrentDataset(), true);
+        }
+      });
+      
+    })();
+  </script>
 
 
 </body>

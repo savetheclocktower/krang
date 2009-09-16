@@ -20,29 +20,40 @@ Chart.Bar = Class.create(Chart.Area, {
   draw: function() {
     this.clear();
     
+    // For holding the shape associated with each data point.
+    this._bars = [];
+
     if (this._datasets.length === 0) {
       throw new Krang.Error("No datasets!");
     }
-    
-    var opt = this.options, R = this.R, g = opt.gutter;
-    
+
+    var opt = this.options, R = this.R, g = opt.gutter;    
+    var mode = opt.data.mode, currentDatasets;
+    if (mode === 'single') {
+      currentDatasets = [this.getActiveDataset()];
+    } else {
+      currentDatasets = $A(this._datasets);
+    }
+        
     // If `maxY` is `auto`, look at the dataset(s) to determine a 
     // reasonable maximum for the chart.
     var max;    
     if (opt.grid.maxY === 'auto') {
       if (opt.stack) {
         // Max value is additive, since the bars stack.
-        max = Math.sum.apply(Math, this._datasets.invoke('maxValue'));
+        max = Math.sum.apply(Math, 
+         this._datasets.invoke('maxValue'));
       } else {
         // Max value is singular, since the bars are arranged in a row.
-        max = Math.max.apply(Math, this._datasets.invoke('maxValue'));
+        max = Math.max.apply(Math,
+         this._datasets.invoke('maxValue'));
       }
     } else {
       // If the user hard-codes a maximum.
       max = opt.grid.maxY;
     }
     
-    var numDataPoints = this._datasets.first().dataLength();
+    var numDataPoints = currentDatasets.first().dataLength();
     
     // Width of each set of bars (all the bars that represent one label
     // on the X axis).
@@ -59,12 +70,12 @@ Chart.Bar = Class.create(Chart.Area, {
     var grid = this._getGridSpec();
         
     // So now we know how to get a Y coordinate from a raw dataset value. 
-    var $valueToY = function(value) {
+    var $valueToY = this._valueToY = function(value) {
       return value * (grid.height / max);
     };
     
     // And how to get the dataset value of an arbitrary Y coordinate.
-    var $yToValue = function(y) {
+    var $yToValue = this._yToValue = function(y) {
       return y / (grid.height / max);
     };
     
@@ -80,16 +91,24 @@ Chart.Bar = Class.create(Chart.Area, {
     
     var $color = opt.bar.color;
     if (opt.bar.color instanceof Krang.Colorset) {
-      opt.bar.color.setLength(this._datasets.length);
+      opt.bar.color.setLength(currentDatasets.length);
     }
     
+    // Create a set of invisible rectangles to serve as UI regions for the
+    // grid columns.
+    var $uiLayer = R.set();
+    this._layerSet.set('ui', $uiLayer);
+    
     // Responsible for plotting an individual dataset.
-    var plotDataset = function(dataset, index) {
+    function plotDataset(dataset, index) {
       var data  = dataset.toArray();
       var color = $color.toString();
       
       // Create a layer for each dataset.
       var datasetLayer = R.set();
+      
+      // Create a layer for the text values above the bars.
+      this._barLabels = R.set();
       
       var datum, barBox, bar, text;
       for (var i = 0, l = data.length; i < l; i++) {
@@ -100,7 +119,8 @@ Chart.Bar = Class.create(Chart.Area, {
           height: $valueToY(datum.value),
           width:  opt.stack ? 
            (grid.xStepPixels - opt.bar.gutter) : 
-           ((grid.xStepPixels - opt.bar.gutter) / this._datasets.length)
+           ((grid.xStepPixels - opt.bar.gutter) /
+           currentDatasets.length)
         };
                 
         barBox.x = Math.round((opt.bar.gutter / 2) +
@@ -148,6 +168,7 @@ Chart.Bar = Class.create(Chart.Area, {
           barDrawBox.x, barDrawBox.y, barDrawBox.width, barDrawBox.height
         ).attr(attrs).attr({ gradient: gradient });        
         datasetLayer.push(bar);
+        this._bars.push(bar);
 
         // Handle drawing the label above the bar, if there is one.
         var obl = opt.bar.label;
@@ -184,6 +205,7 @@ Chart.Bar = Class.create(Chart.Area, {
             }
           }).draw(R);
           $textLayer.push(text);
+          this._barLabels.push(text);
         }
         
         // Only draw X-axis labels for the first set.
@@ -213,11 +235,59 @@ Chart.Bar = Class.create(Chart.Area, {
     }; // function plotDataset(dataset, index)
     this._drawYAxisLabels(max);
     
-    this._datasets.each(plotDataset, this); 
-    var layerOrder = $w('text frame data grid background');
+    currentDatasets.each(plotDataset, this);
+    var layerOrder = $w('ui text frame data grid background');
     this._layerSet.setKeyOrder(layerOrder);
     
-  } // #draw
+    this._drawn = true;
+  }, // #draw
+  
+  _animateDataset: function(dataset) {
+    this._activeDataset = dataset;
+    
+    if (!this._drawn || this._bars.length === 0) {
+      this.draw();
+      return;
+    }
+    
+    if (this._barLabels) this._barLabels.remove();
+    
+    var data = dataset.toArray(), bars = this._bars;    
+    var grid = this._getGridSpec(), opt = this.options;
+    
+    // Ensure this callback is called only after the last shape is done
+    // animating.
+    var $callback = function() {
+      var self = arguments.callee;
+      self.count = self.count || 0;
+      self.count++;
+      if (self.count === bars.length) {
+        // Ick.
+        try {
+          this.draw();
+        } catch(e) {}        
+      }
+    }.bind(this);
+    
+    data.each( function(datum, index) {
+      var bar = bars[index];      
+      
+      var barBox = {
+        height: this._valueToY(datum.value),
+        width:  grid.xStepPixels - opt.bar.gutter,
+        x:      Math.round((opt.bar.gutter / 2) +
+         (grid.xStepPixels * index)),
+        y:      0
+      };
+      
+      var barDrawBox = this._chartingBoxToDrawingBox(barBox);      
+      bar.animate(barDrawBox,
+       opt.animate.duration * 1000,
+       opt.animate.easing,
+       $callback
+      );
+    }, this);
+  }
 }); // Chart.Bar
 
 

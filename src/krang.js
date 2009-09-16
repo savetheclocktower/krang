@@ -18,5 +18,6 @@ if (!window.Raphael) {
 //= require "text"
 //= require "ordered_hash"
 //= require "layer_set"
+//= require "path_builder"
 
 //= require "chart"
