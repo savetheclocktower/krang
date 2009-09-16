@@ -17,7 +17,10 @@ Chart.Area = Class.create(Chart.Base, {
       g.top,          // y
       gridSpec.width, // width
       gridSpec.height // height
-    ).attr({ fill: og.backgroundColor });
+    ).attr({
+      fill: og.backgroundColor,
+      stroke: og.backgroundColor
+    });
     
     this._layerSet.set('background', bg);
 
@@ -49,6 +52,9 @@ Chart.Area = Class.create(Chart.Base, {
     this._layerSet.set('frame', frame);
   },
   
+  // Converts charting coordinates (with origin at bottom-left of graph)
+  // to drawing coordinates (with origin at top-left of canvas).
+  // Expects an object with `x` and `y` properties.
   _chartingPointToDrawingPoint: function(point) {
     var drawPoint = Object.clone(point);
     var opt = this.options, g = opt.gutter;
@@ -68,8 +74,7 @@ Chart.Area = Class.create(Chart.Base, {
     return drawPoint;
   },
 
-  // Converts charting coordinates (with origin at bottom-left of graph)
-  // to drawing coordinates (with origin at top-left of canvas).
+  // Expects an object with `x`,`y`, `width`, and `height` properties.
   _chartingBoxToDrawingBox: function(box) {
     var drawBox = Object.clone(box);
     var opt = this.options, g = opt.gutter;
@@ -123,9 +128,11 @@ Chart.Area = Class.create(Chart.Base, {
     return this._gridSpec;
   },
   
-  _drawYAxisLabels: function(max) {
+  _drawYAxisLabels: function() {
     var grid = this._getGridSpec(), opt = this.options, g = opt.gutter;
     var R = this.R, textLayer = this._layerSet.get('text');
+    
+    var max = this._max;
     
     // Draw Y-axis labels.
     var yAxisLabelValue, yAxisLabelText, yAxisLabelTextBox,
@@ -155,7 +162,7 @@ Chart.Area = Class.create(Chart.Base, {
       
       text = new Krang.Text(yAxisLabelText, {
         box: yAxisLabelTextBox,      
-        align: 'right',        
+        align: 'right',
         font: {
           family: opt.text.font.family,
           size:   opt.text.font.size,
@@ -169,10 +176,8 @@ Chart.Area = Class.create(Chart.Base, {
 
 Object.extend(Chart.Area, {
   DEFAULT_OPTIONS: {
-    /* 
-     *  How much space to leave around the chart itself. There are non-zero
-     *  defaults here to leave room for axis labels.
-     */ 
+    // How much space to leave around the chart itself. There are non-zero
+    // defaults here to leave room for axis labels.
     gutter: {
       top:    20,
       bottom: 30,
@@ -180,42 +185,38 @@ Object.extend(Chart.Area, {
       right:  30
     },
     
-    /* The chart's grid. */
+    // The chart's grid.
     grid: {               
-      color: '#eee',      /* Color of the gridlines. */
+      color: '#eee',      // Color of the gridlines.
       backgroundColor: '#fff',
       
       horizontal: {
-        enabled: true,    /* Whether to draw horizontal gridlines. */
+        enabled: true,    // Whether to draw horizontal gridlines.
         lines: 10
       },
       
       vertical: {
-        enabled: false,   /* Whether to draw vertical gridlines. */
+        enabled: false,   // Whether to draw vertical gridlines.
         lines: 0
       },
       
-      /* Callbacks that format the labels for display. */
+      // Callbacks that format the labels for display.
       labelX: Prototype.K,  
       labelY: function(value) {
         return value.toFixed(1);
       }, 
 
-      /*
-       * How often to draw labels. If set to `3`, for instance, only every
-       * third label will be drawn.  
-       */
+      // How often to draw labels. If set to `3`, for instance, only every
+      // third label will be drawn.  
       labelXFrequency: 1,
       labelYFrequency: 1,
       
-      /* 
-       * If set to 'auto', will determine a good max value based on the 
-       * scale of the chart. Otherwise one can specify a max value to use.
-       */ 
+      // If set to 'auto', will determine a good max value based on the 
+      // scale of the chart. Otherwise one can specify a max value to use.
       maxY: 'auto'
     },
     
-    /* Border around the chart itself. */    
+    // Border around the chart itself.
     border: {           
       color: '#bbb',
       width: 1
