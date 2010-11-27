@@ -6,7 +6,10 @@ KRANG_SRC_DIR  = File.join(KRANG_ROOT, 'src')
 KRANG_DIST_DIR = File.join(KRANG_ROOT, 'dist')
 KRANG_DOC_DIR  = File.join(KRANG_ROOT, 'doc')
 
-$:.unshift File.join(KRANG_ROOT, 'vendor', 'sprockets', 'lib')
+%w[sprockets pdoc].each do |name|
+  $:.unshift File.join(KRANG_ROOT, 'vendor', name, 'lib')
+end
+
 def sprocketize(path, source, destination = source)
   begin
     require 'sprockets'
@@ -59,4 +62,38 @@ end
 desc "Generates a compressed (with YUI Compressor) version of the distributable."
 task :compress => :dist do
   compress('krang.js', 'krang.compressed.js')
+end
+
+task :doc => ['doc:build']
+
+namespace :doc do
+  desc "Builds the documentation."
+  task :build do
+    require 'pdoc'
+    rm_rf(KRANG_DOC_DIR)
+    mkdir_p(KRANG_DOC_DIR)
+    hash = `git show-ref --hash HEAD`.chomp[0..6]
+    
+    PDoc.run({
+      :source_files => Dir[File.join('src', '**', '*.js')],
+      :destination  => KRANG_DOC_DIR,
+      :index_page => 'README.markdown',
+      :syntax_highlighter => :pygments,
+      :markdown_parser => :bluecloth,
+      :src_code_text => "View source on GitHub &rarr;",
+      :src_code_href => proc { |obj|
+        "https://github.com/savetheclocktower/krang/blob/#{hash}/#{obj.file}#L#{obj.line_number}"
+      },
+      :pretty_urls => false,
+      :bust_cache => false,
+      :name => "Krang",
+      :short_name => "Krang",
+      :home_url => "",
+      :version => '0.1.0',
+      :index_header => "",
+      :footer => ""
+    })
+    
+  end
+  
 end
