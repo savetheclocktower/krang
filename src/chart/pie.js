@@ -67,12 +67,14 @@ Chart.Pie = Class.create(Chart.Base, {
       if (x1 == x2 && y1 == y2) y1--;
       
       var isLarge = ((endAngle - startAngle) > 180);
-          
-      var wedge = R.path(params)
-        .moveTo(cx, cy)
+      
+      var wedgePath = new Krang.PathBuilder();      
+      wedgePath.moveTo(cx, cy)
         .lineTo(x1, y1)
         .arcTo(r, r, (isLarge ? 1 : 0), 0, x2, y2)
         .lineTo(cx, cy);
+        
+      var wedge = R.path(wedgePath.toString()).attr(params);
         
       $dataLayer.push(wedge);
       return wedge;
