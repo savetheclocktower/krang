@@ -97,6 +97,10 @@ Chart.Area = Class.create(Chart.Base, {
     return drawBox;
   },
   
+  // A "grid spec" is an internal object that contains all the information
+  // needed to draw the chart's grid. The information is gleaned from several
+  // sources: explicitly-set options, default options, and values inferred
+  // from the data.
   _getGridSpec: function(options) {
     if (this._gridSpec) return this._gridSpec;
     
@@ -131,6 +135,16 @@ Chart.Area = Class.create(Chart.Base, {
   _drawYAxisLabels: function() {
     var grid = this._getGridSpec(), opt = this.options, g = opt.gutter;
     var R = this.R, textLayer = this._layerSet.get('text');
+
+    // If `maxY` is `auto`, look at the dataset(s) to determine a 
+    // reasonable maximum for the chart.
+    if (opt.grid.maxY === 'auto') {
+      // The largest value in any single dataset will serve as the maximum.
+      this._max = Math.max.apply(Math, this._datasets.invoke('maxValue'));
+    } else {
+      // If the user hard-codes a maximum.
+      this._max = opt.grid.maxY;
+    }
     
     var max = this._max;
     
@@ -150,7 +164,7 @@ Chart.Area = Class.create(Chart.Base, {
         continue;
       
       yAxisLabelPixelHeight = grid.yStepPixels * j;      
-      yAxisLabelValue       = $yToValue(yAxisLabelPixelHeight);
+      yAxisLabelValue       = $yToValue(yAxisLabelPixelHeight);      
       yAxisLabelText        = opt.grid.labelY(yAxisLabelValue);      
       
       yAxisLabelTextBox = this._chartingBoxToDrawingBox({
