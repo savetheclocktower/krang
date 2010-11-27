@@ -122,7 +122,12 @@ Chart.Line = Class.create(Chart.Area, {
       shapes = this._graphShapes;
       line = shapes.line;
       fill = shapes.fill;
-      dots = shapes.dots;            
+      dots = shapes.dots;
+      if (!dots) {
+        shapes.dots = [];
+      }
+    } else {
+      shapes = this._graphShapes;
       if (!dots) {
         shapes.dots = [];
       }
@@ -190,7 +195,7 @@ Chart.Line = Class.create(Chart.Area, {
       }
       
       var dotExists = false, dot;
-      if (opt.data.mode === "single") {
+      if (isSingle) {
         dot = shapes.dots[i];
         if (dot) dotExists = true;
       }
