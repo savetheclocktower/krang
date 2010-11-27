@@ -1,11 +1,17 @@
 // Utility functions for drawing text in boxes.
 
-/**
- *  Krang.Text
+/** 
+ *  class Krang.Text
+ *  includes Krang.Mixin.Configurable
  *  Contains utility functions for drawing and manipulating text.
 **/
 
 Krang.Text = Class.create(Krang.Mixin.Configurable, {
+  /**
+   *  new Krang.Text(text[, options])
+   *  
+   *  Instantiate a text object.
+  **/
   initialize: function(text, options) {
     this.text = text;
     this.setOptions(options);
@@ -17,6 +23,11 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
      (opt.box.height !== null);
   },
   
+  /**
+   *  Krang.Text#clear() -> undefined
+   *  
+   *  Clears all text in the box.
+  **/
   clear: function() {
     if (!this._set) return;
     
@@ -24,6 +35,12 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
     this._set = null;
   },
   
+  /**
+   *  Krang.Text#draw(context) -> Raphael.Set
+   *  - context: A Raphael drawing context.
+   *  
+   *  Draws the text using the given Raphael drawing context.
+  **/
   draw: function(context) {
     var R = context, opt = this.options,
      attrs = opt.attributes, box = opt.box, set = R.set();
@@ -92,6 +109,9 @@ Krang.Text = Class.create(Krang.Mixin.Configurable, {
 });
 
 Object.extend(Krang.Text, {
+  /**
+   *  Krang.Text.DEFAULT_OPTIONS = Object
+  **/
   DEFAULT_OPTIONS: {
     box: {
       x: 0,

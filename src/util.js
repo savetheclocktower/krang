@@ -16,6 +16,9 @@
     return hash;
   }
 
+  /**
+   *  Krang.Data
+  **/
   window.Krang.Data = {
     /**
      *  Krang.Data.store(node, key, value) -> undefined

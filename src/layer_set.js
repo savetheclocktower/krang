@@ -1,5 +1,9 @@
 /**
  *  class Krang.LayerSet < Krang.OrderedHash
+ *  
+ *  An ordered key/value collection where the keys are layer names and the
+ *  values are Raphael element sets. Used to organize shapes into sets and
+ *  determine the drawing order/z-depth of each group.
 **/
 Krang.LayerSet = Class.create(Krang.OrderedHash, {
   _rearrangeLayers: function() {
@@ -15,6 +19,12 @@ Krang.LayerSet = Class.create(Krang.OrderedHash, {
     }
   },
   
+  /**
+   *  new Krang.LayerSet(R[, object])
+   *  - R (Raphael): A Raphael paper object.
+   *  
+   *  Instantiate a layer set.
+  **/
   initialize: function($super, R, object) {
     $super(object);
     this.R = R;

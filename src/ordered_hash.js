@@ -1,9 +1,14 @@
 /**
- *  class Krang.OrderedHash < Hash
+ *  class Krang.OrderedHash
+ *  
+ *  A Hash with significant key order. Keys can also be moved into arbitrary
+ *  order.
 **/
 Krang.OrderedHash = Class.create(Hash, {
   /**
    *  new Krang.OrderedHash(object)
+   *  
+   *  Create an ordered hash.
   **/
   initialize: function($super, object) {
     $super(object);    
@@ -52,6 +57,12 @@ Krang.OrderedHash = Class.create(Hash, {
   
   /**
    *  Krang.OrderedHash#setKeyOrder(keys) -> undefined
+   *  - keys (Array): An array containing each key name exactly once.
+   *  
+   *  Arrange the hash's existing keys in an explicit order.
+   *  
+   *  Will throw an error if keys do not match — e.g., if any key is omitted
+   *  or repeated.
   **/
   setKeyOrder: function(keys) {
     // Ensure same number of keys.

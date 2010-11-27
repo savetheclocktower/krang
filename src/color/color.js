@@ -32,6 +32,15 @@
    *  An abstract representation of a color.
   **/
   window.Krang.Color = Class.create({
+    /**
+     *  new Krang.Color(r, g, b[, a])
+     *  - r (Number): Red value (0-255).
+     *  - g (Number): Green value (0-255).
+     *  - b (Number): Blue value (0-255).
+     *  - a (Number): Alpha value (0.0-1.0). Optional; defaults to 1.0.
+     *  
+     *  Instantiate a color.
+    **/
     initialize: function(r, g, b, a) {
       a = Object.isUndefined(a) ? 1.0 : a;    
       this.rgb = { r: r, g: g, b: b, a: a };
@@ -78,6 +87,8 @@
      *  Krang.Color.toHexString() -> String
      *  
      *  Returns the hex code for the color (prepended with `#`).
+     *  
+     *  Note that this represenation ignores the alpha channel.
     **/
     toHexString: function() {
       var c = this.rgb, str = this._hexString;
@@ -95,7 +106,7 @@
     },
     
     /**
-     *  Krang.Color.asHSV() -> Krang.Color
+     *  Krang.Color.asHSV() -> Object
     **/
     asHSV: function() {
       if (!this.hsv) {
@@ -105,7 +116,7 @@
     },
     
     /**
-     *  Krang.Color.asHSL() -> Krang.Color
+     *  Krang.Color.asHSL() -> Object
     **/
     asHSL: function() {
       if (!this.hsl) {
@@ -114,7 +125,7 @@
       return Object.clone(this.hsl);
     },
     
-    /**
+    /** alias of: Krang.Color#toRGBString
      *  Krang.Color#toString() -> String
     **/
     toString: function() {
@@ -123,6 +134,10 @@
     
     /**
      *  Krang.Color#colorWithAlpha(alpha) -> Krang.Color
+     *  - alpha (Number): An alpha value (0.0-1.0).
+     *  
+     *  Returns a new instance of `Krang.Color` like the current one, but
+     *  with the specified `alpha` value.
     **/
     colorWithAlpha: function(alpha) {
       var rgb = this.rgb;
@@ -131,6 +146,10 @@
     
     /**
      *  Krang.Color#colorWithHue(hue) -> Krang.Color
+     *  - hue (Number): A hue value ().
+     *  
+     *  Returns a copy of this instance with the new lightness value given
+     *  by `lightness`.
     **/
     colorWithHue: function(hue) {
       var hsl = this.asHSL();
@@ -138,24 +157,44 @@
       return Krang.Color.fromHSL(hsl);
     },
     
+    /**
+     *  Krang.Color#colorWithSaturation(saturation) -> Krang.Color
+     *  - saturation (Number): A saturation value (0.0-1.0).
+     *  
+     *  Returns a copy of this instance with the new saturation value given
+     *  by `saturation`.
+    **/
     colorWithSaturation: function(saturation) {
       var hsl = this.asHSL();
       hsl.s = saturation;
       return Krang.Color.fromHSL(hsl);
     },
     
+    /**
+     *  Krang.Color#colorWithLightness(lightness) -> Krang.Color
+     *  - lightness (Number): A lightness value (0.0-1.0).
+     *  
+     *  Returns a copy of this instance with the new lightness value given
+     *  by `lightness`.
+    **/
     colorWithLightness: function(lightness) {
       var hsl = this.asHSL();
       hsl.l = lightness;
       return Krang.Color.fromHSL(hsl);
     },
     
+    /**
+     *  Krang.Color#darkerBy(level) -> Krang.Color
+    **/
     darkerBy: function(level) {
       var hsl = this.asHSL();
       hsl.l = Math.max(hsl.l - level, 0);
       return Krang.Color.fromHSL(hsl);
     },
     
+    /**
+     *  Krang.Color#lighterBy(level) -> Krang.Color
+    **/
     lighterBy: function(level) {
       var hsl = this.asHSL();
       hsl.l = Math.min(hsl.l + level, 1);
@@ -176,6 +215,12 @@
   
   Object.extend(Krang.Color, {
     
+    /**
+     *  Krang.Color.fromRGB(r, g, b[, a]) -> Krang.Color
+     *  Krang.Color.fromRGB(object) -> Krang.Color
+     *  
+     *  Create a new `Krang.Color` instance from RGB values.
+    **/
     fromRGB: function(r, g, b, a) {
       if (arguments.length === 1) {
         var rgb = r;
@@ -185,17 +230,27 @@
       return new Krang.Color(r, g, b, a);
     },
     
+    /**
+     *  Krang.Color.fromHSL(h, s, l[, a]) -> Krang.Color
+    **/
     fromHSL: function(h, s, l, a) {
       return this.fromRGB(this.hslToRGB.apply(this, arguments));
     },
     
+    /**
+     *  Krang.Color.fromHSV(h, s, v[, a]) -> Krang.Color
+    **/
     fromHSV: function(h, s, v, a) {
       return this.fromRGB(this.hsvToRGB.apply(this, arguments));
     },
     
     fromName: function(name) {
-      
+      // TODO
     },
+    
+    /**
+     *  Krang.Color.fromString(colorString) -> Krang.Color
+    **/
     
     fromString: function(colorString) {
       if (colorString.startsWith('rgb')) {
@@ -209,6 +264,16 @@
       return this.fromName(colorString);
     },
     
+    /** alias of: Krang.Color.fromString
+     *  Krang.Color.parse(colorString) -> Krang.Color
+    **/
+    parse: function(colorString) {
+      return this.fromString(colorString)
+    },
+    
+    /**
+     *  Krang.Color.fromHexString(hexCode) -> Krang.Color
+    **/
     fromHexString: function(hexCode) {
       if (hexCode.startsWith('#')) {
         hexCode = hexCode.substring(1);
@@ -231,7 +296,7 @@
     },
     
     _fromColorString: function(pre, method, scales, colorCode) {
-      
+      // TODO
     },
     
     hsvToRGB: function(h, s, v, a) {

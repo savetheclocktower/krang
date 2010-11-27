@@ -1,5 +1,5 @@
 /** section: krang
- * class Krang.Error < Error
+ * class Krang.Error
 **/
 
 Krang.Error = function(message) {

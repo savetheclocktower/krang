@@ -1,4 +1,6 @@
-
+/** section: Krang
+ *  Chart
+**/
 var Chart = {};
 
 //= require "chart/base"

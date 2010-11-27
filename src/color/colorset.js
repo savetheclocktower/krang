@@ -66,6 +66,9 @@ Krang.Colorset = Class.create(Krang.Mixin.Configurable, {
 
 
 Object.extend(Krang.Colorset, {
+  /** 
+   *  Krang.Colorset.DEFAULT_OPTIONS = Object
+  **/
   DEFAULT_OPTIONS: {
     vary: 'h',
     
@@ -76,6 +79,9 @@ Object.extend(Krang.Colorset, {
   
   /**
    *  Krang.Colorset.varyHue(size, saturation, lightness) -> [Krang.Color...]
+   *  
+   *  Produces a colorset in which hue varies, but saturation and lightness
+   *  are constant.
   **/
   varyHue: function(size, saturation, lightness) {
     var hues = [];
@@ -91,6 +97,9 @@ Object.extend(Krang.Colorset, {
   
   /**
    *  Krang.Colorset.varySaturation(size, hue, lightness) -> [Krang.Color...]
+   *  
+   *  Produces a colorset in which saturation varies, but hue and lightness
+   *  are constant.
   **/
   varySaturation: function(size, hue, lightness) {
     var sats = [];
@@ -106,6 +115,9 @@ Object.extend(Krang.Colorset, {
   
   /**
    *  Krang.Colorset.varyLightness(size, hue, saturation) -> [Krang.Color...]
+   *  
+   *  Produces a colorset in which lightness varies, but hue and saturation
+   *  are constant.
   **/
   varyLightness: function(size, hue, saturation) {
     var lums = [];

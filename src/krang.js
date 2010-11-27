@@ -1,3 +1,10 @@
+/**
+ *  == Krang ==
+**/
+
+/** section: Krang
+ *  Krang
+**/
 var Krang = {
   VERSION: '0.0.1',
   PROTOTYPE_VERSION: '>= 1.6.1',
