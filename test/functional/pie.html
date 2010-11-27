@@ -34,6 +34,27 @@
 
   	  pie.addDataset(dataset);
   	  pie.draw();
+  	  
+  	  var chart = $('chart');
+  	  
+  	  chart.observe('krang:mouseover', function(event) {
+  	    var memo = event.memo, wedge = memo.wedge;
+  	    // Store the original fill color.
+  	    var fill = wedge.attr('fill');
+  	    wedge.store('original_color', fill);
+  	    
+  	    // Replace the fill color with a lighter version to act as a highlight.
+  	    var color = Krang.Color.fromString(fill);
+  	    wedge.attr('fill', color.lighterBy(0.2).toRGBString());
+  	  });
+  	  
+  	  chart.observe('krang:mouseout', function(event) {
+  	    // Restore the original color.
+  	    var memo = event.memo, wedge = memo.wedge;
+  	    var color = wedge.retrieve('original_color');
+  	    wedge.attr('fill', color);
+  	  });
+  	  
 	  });
 	
 	</script>
